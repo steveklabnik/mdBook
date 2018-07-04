@@ -4,28 +4,25 @@ use std::path::Path;
 use self::notify::Watcher;
 use std::time::Duration;
 use std::sync::mpsc::channel;
-use clap::{App, ArgMatches, SubCommand};
 use mdbook::MDBook;
 use mdbook::utils;
 use mdbook::errors::Result;
 use {get_book_dir, open};
 
-// Create clap subcommand arguments
-pub fn make_subcommand<'a, 'b>() -> App<'a, 'b> {
-    SubCommand::with_name("watch")
-        .about("Watch the files for changes")
-        .arg_from_usage("-o, --open 'Open the compiled book in a web browser'")
-        .arg_from_usage(
-            "[dir] 'A directory for your book{n}(Defaults to Current Directory when omitted)'",
-        )
+#[derive(StructOpt)]
+pub struct WatchArgs {
+    #[structopt(help = "A directory for your book{n}(Defaults to Current Directory when omitted)")]
+    dir: Option<String>,
+    #[structopt(long = "open", short = "o", help = "Open the compiled book in a web browser")]
+    open: bool,
 }
 
 // Watch command implementation
-pub fn execute(args: &ArgMatches) -> Result<()> {
-    let book_dir = get_book_dir(args);
+pub fn execute(args: WatchArgs) -> Result<()> {
+    let book_dir = get_book_dir(args.dir);
     let book = MDBook::load(&book_dir)?;
 
-    if args.is_present("open") {
+    if args.open {
         book.build()?;
         open(book.build_dir_for("html").join("index.html"));
     }

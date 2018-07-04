@@ -1,26 +1,23 @@
 use std::fs;
 use std::path::PathBuf;
-use clap::{App, ArgMatches, SubCommand};
 use mdbook::MDBook;
 use mdbook::errors::*;
 use get_book_dir;
 
-// Create clap subcommand arguments
-pub fn make_subcommand<'a, 'b>() -> App<'a, 'b> {
-    SubCommand::with_name("clean")
-        .about("Delete built book")
-        .arg_from_usage(
-            "-d, --dest-dir=[dest-dir] 'The directory of built book{n}(Defaults to ./book when \
-             omitted)'",
-        )
+#[derive(StructOpt)]
+pub struct CleanArgs {
+    #[structopt(long = "dest-dir", short = "d",
+                help = "The output directory for your book{n}(Defaults to ./book when omitted)",
+                parse(from_os_str))]
+    dest_dir: Option<PathBuf>,
 }
 
 // Clean command implementation
-pub fn execute(args: &ArgMatches) -> ::mdbook::errors::Result<()> {
-    let book_dir = get_book_dir(args);
+pub fn execute(args: CleanArgs) -> ::mdbook::errors::Result<()> {
+    let book_dir = get_book_dir(None);
     let book = MDBook::load(&book_dir)?;
 
-    let dir_to_remove = match args.value_of("dest-dir") {
+    let dir_to_remove = match args.dest_dir {
         Some(dest_dir) => PathBuf::from(dest_dir),
         None => book.root.join(&book.config.build.build_dir),
     };

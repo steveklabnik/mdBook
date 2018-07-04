@@ -1,34 +1,31 @@
 use std::io;
-use std::io::Write;
 use std::process::Command;
-use clap::{App, ArgMatches, SubCommand};
+use std::io::Write;
 use mdbook::MDBook;
 use mdbook::errors::Result;
 use mdbook::config;
 use get_book_dir;
 
-// Create clap subcommand arguments
-pub fn make_subcommand<'a, 'b>() -> App<'a, 'b> {
-    SubCommand::with_name("init")
-        .about("Create boilerplate structure and files in the directory")
-        // the {n} denotes a newline which will properly aligned in all help messages
-        .arg_from_usage("[dir] 'A directory for your book{n}(Defaults to Current Directory \
-                         when omitted)'")
-        .arg_from_usage("--theme 'Copies the default theme into your source folder'")
-        .arg_from_usage("--force 'skip confirmation prompts'")
+#[derive(StructOpt)]
+pub struct InitArgs {
+    #[structopt(long = "theme", help = "Copies the default theme into your source folder")]
+    pub theme: bool,
+    #[structopt(long = "force", help = "Skip confirmation prompts")] pub force: bool,
+    #[structopt(help = "A directory for your book{n}(Defaults to Current Directory when omitted)")]
+    pub dir: Option<String>,
 }
 
 // Init command implementation
-pub fn execute(args: &ArgMatches) -> Result<()> {
-    let book_dir = get_book_dir(args);
+pub fn execute(args: InitArgs) -> Result<()> {
+    let book_dir = get_book_dir(args.dir);
     let mut builder = MDBook::init(&book_dir);
     let mut config = config::Config::default();
 
     // If flag `--theme` is present, copy theme to src
-    if args.is_present("theme") {
+    if args.theme {
         config.set("output.html.theme", "src/theme")?;
         // Skip this if `--force` is present
-        if !args.is_present("force") {
+        if !args.force {
             // Print warning
             println!();
             println!(
