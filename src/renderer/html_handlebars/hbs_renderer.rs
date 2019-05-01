@@ -1,4 +1,4 @@
-use book::{Book, BookItem};
+use book::{Book, BookItem, Chapter};
 use config::{Config, HtmlConfig, Playpen};
 use errors::*;
 use renderer::html_handlebars::helpers;
@@ -29,69 +29,93 @@ impl HtmlHandlebars {
         mut ctx: RenderItemContext,
         print_content: &mut String,
     ) -> Result<()> {
-        // FIXME: This should be made DRY-er and rely less on mutable state
+        // FIXME: This should rely less on mutable state
         if let BookItem::Chapter(ref ch) = *item {
-            let content = ch.content.clone();
-            let content = utils::render_markdown(&content, ctx.html_config.curly_quotes);
-
-            let string_path = ch.path.parent().unwrap().display().to_string();
-
-            let fixed_content = utils::render_markdown_with_base(&ch.content, ctx.html_config.curly_quotes, &string_path);
-            print_content.push_str(&fixed_content);
-
-            // Update the context with data for this file
-            let path = ch
-                .path
-                .to_str()
-                .chain_err(|| "Could not convert path to str")?;
-            let filepath = Path::new(&ch.path).with_extension("html");
-
             // "print.html" is used for the print page.
             if ch.path == Path::new("print.md") {
                 bail!(ErrorKind::ReservedFilenameError(ch.path.clone()));
             };
 
-            // Non-lexical lifetimes needed :'(
-            let title: String;
-            {
-                let book_title = ctx
-                    .data
-                    .get("book_title")
-                    .and_then(serde_json::Value::as_str)
-                    .unwrap_or("");
-                title = ch.name.clone() + " - " + book_title;
-            }
+            let path = ch
+                .path
+                .to_str()
+                .chain_err(|| "Could not convert path to str")?;
 
+            print_content.push_str(&self.render_print_content(
+                &ch.content,
+                &ch.path,
+                &ctx.html_config,
+            ));
+
+            let content = ch.content.clone();
+            let content = utils::render_markdown(&content, ctx.html_config.curly_quotes);
             ctx.data.insert("path".to_owned(), json!(path));
             ctx.data.insert("content".to_owned(), json!(content));
             ctx.data.insert("chapter_title".to_owned(), json!(ch.name));
+
+            let title = self.get_title(&ctx.data, &ch.name);
             ctx.data.insert("title".to_owned(), json!(title));
+
             ctx.data.insert(
                 "path_to_root".to_owned(),
                 json!(utils::fs::path_to_root(&ch.path)),
             );
 
             // Render the handlebars template with the data
-            debug!("Render template");
-            let rendered = ctx.handlebars.render("index", &ctx.data)?;
-
-            let rendered = self.post_process(rendered, &ctx.html_config.playpen);
-
-            // Write to file
-            debug!("Creating {}", filepath.display());
-            utils::fs::write_file(&ctx.destination, &filepath, rendered.as_bytes())?;
+            debug!("Render template for {}", ch.path.display());
+            self.render_content(&ctx, &Path::new(&ch.path).with_extension("html"))?;
 
             if ctx.is_index {
                 ctx.data.insert("path".to_owned(), json!("index.html"));
                 ctx.data.insert("path_to_root".to_owned(), json!(""));
-                let rendered_index = ctx.handlebars.render("index", &ctx.data)?;
-                let rendered_index = self.post_process(rendered_index, &ctx.html_config.playpen);
+
                 debug!("Creating index.html from {}", path);
-                utils::fs::write_file(&ctx.destination, "index.html", rendered_index.as_bytes())?;
+                self.render_content(&ctx, &Path::new("index.html"))?;
             }
         }
 
         Ok(())
+    }
+
+    fn render_content(
+        &self,
+        ctx: &RenderItemContext,
+        filepath: &Path
+    ) -> Result <()> {
+        let rendered = ctx.handlebars.render("index", &ctx.data)?;
+        let rendered = self.post_process(rendered, &ctx.html_config.playpen);
+
+        // Write to file
+        debug!("Creating {}", filepath.display());
+        utils::fs::write_file(&ctx.destination, &filepath, rendered.as_bytes())
+    }
+
+    fn render_print_content(
+        &self,
+        content: &String,
+        path: &PathBuf,
+        config: &HtmlConfig,
+    ) -> String {
+        let string_path = path.parent().unwrap().display().to_string();
+
+        let fixed_content =
+            utils::render_markdown_with_base(content, config.curly_quotes, &string_path);
+
+        fixed_content
+    }
+
+    fn get_title(
+        &self,
+        render_data: &serde_json::Map<String, serde_json::Value>,
+        chapter_name: &String,
+    ) -> String {
+        let book_title = render_data
+            .get("book_title")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("");
+
+        let title = chapter_name.clone() + " - " + book_title;
+        title
     }
 
     #[cfg_attr(feature = "cargo-clippy", allow(clippy::let_and_return))]
@@ -506,7 +530,8 @@ fn build_header_links(html: &str) -> String {
                 .expect("Regex should ensure we only ever get numbers here");
 
             wrap_header_with_link(level, &caps[2], &mut id_counter)
-        }).into_owned()
+        })
+        .into_owned()
 }
 
 /// Wraps a single header tag with a link, making sure each tag gets its own
@@ -557,7 +582,8 @@ fn fix_code_blocks(html: &str) -> String {
                 classes = classes,
                 after = after
             )
-        }).into_owned()
+        })
+        .into_owned()
 }
 
 fn add_playpen_pre(html: &str, playpen_config: &Playpen) -> String {
@@ -593,7 +619,8 @@ fn add_playpen_pre(html: &str, playpen_config: &Playpen) -> String {
                 // not language-rust, so no-op
                 text.to_owned()
             }
-        }).into_owned()
+        })
+        .into_owned()
 }
 
 fn partition_source(s: &str) -> (String, String) {
@@ -662,5 +689,123 @@ mod tests {
             let got = build_header_links(&src);
             assert_eq!(got, should_be);
         }
+    }
+
+    struct PathTestContext<'a> {
+        render_context: RenderItemContext<'a>,
+        item: BookItem,
+    }
+
+    impl<'a> PathTestContext<'a> {
+        pub fn new(path: String, dummy_handlebars: &'a Handlebars) -> PathTestContext<'a> {
+            PathTestContext {
+                render_context: RenderItemContext {
+                    handlebars: dummy_handlebars,
+                    destination: PathBuf::new(),
+                    data: serde_json::from_str("{}").unwrap(),
+                    is_index: false,
+                    html_config: HtmlConfig {
+                        ..Default::default()
+                    },
+                },
+                item: BookItem::Chapter(Chapter {
+                    path: PathBuf::from(path),
+                    ..Default::default()
+                }),
+            }
+        }
+    }
+
+    #[test]
+    fn print_dot_md_is_reserved() {
+        let dummy_handlebars = Handlebars::new();
+        let ctx = PathTestContext::new(String::from("print.md"), &dummy_handlebars);
+        let html_handlebars = HtmlHandlebars::new();
+
+        let mut content = String::new();
+        match html_handlebars.render_item(&ctx.item, ctx.render_context, &mut content) {
+            Ok(_) => assert!(
+                false,
+                "Expected a failure, because print.md is a reserved filename"
+            ),
+            Err(error) => assert_eq!(error.to_string(), "print.md is reserved for internal use"),
+        };
+    }
+
+    #[test]
+    #[cfg(not(target_os = "windows"))] //The failure we're after does not occur on windows :(, on Linux it does.
+    fn invalid_utf8_path_returns_error() {
+        let mut invalid_unicode = String::from("AB");
+        unsafe {
+            let bytes = invalid_unicode.as_bytes_mut();
+            bytes[0] = 0xC2;
+            bytes[1] = 0xC2;
+        }
+
+        let dummy_handlebars = Handlebars::new();
+        let ctx = PathTestContext::new(String::from(invalid_unicode), &dummy_handlebars);
+        let html_handlebars = HtmlHandlebars::new();
+
+        let mut content = String::new();
+        match html_handlebars.render_item(&ctx.item, ctx.render_context, &mut content) {
+            Ok(_) => assert!(
+                false,
+                "Expected a failure in PathBuf::to_str (for BookItem::Chapter::path)"
+            ),
+            Err(error) => assert_eq!(error.to_string(), "Could not convert path to str"),
+        };
+    }
+
+    #[test]
+    fn test_get_title() {
+        let json: serde_json::Map<String, serde_json::Value> =
+            serde_json::from_str("{\"book_title\": \"Electric\"}").unwrap();
+        let chapter_name = String::from("Froboz");
+
+        let html_handlebars = HtmlHandlebars::new();
+        let title = html_handlebars.get_title(&json, &chapter_name);
+        assert_eq!("Froboz - Electric", title);
+    }
+
+    #[test]
+    fn test_get_title_no_book_title() {
+        let json: serde_json::Map<String, serde_json::Value> = serde_json::from_str("{}").unwrap();
+        let chapter_name = String::from("Froboz");
+
+        let html_handlebars = HtmlHandlebars::new();
+        let title = html_handlebars.get_title(&json, &chapter_name);
+        assert_eq!("Froboz - ", title); // Mmm, I'd ditch the " - " here
+    }
+
+    #[test]
+    fn test_render_print_content() {
+        let path = PathBuf::from("foobar.md");
+        let content = String::from("# Awesome 'quotes'");
+        let html_config = HtmlConfig {
+            curly_quotes: false,
+            ..Default::default()
+        };
+
+        let html_handlebars = HtmlHandlebars::new();
+        assert_eq!(
+            "<h1>Awesome 'quotes'</h1>\n",
+            html_handlebars.render_print_content(&content, &path, &html_config)
+        );
+    }
+
+    #[test]
+    fn test_render_print_content_with_curly_quotes() {
+        let path = PathBuf::from("foobar.md");
+        let content = String::from("# Some curly 'quotes'?");
+        let html_config = HtmlConfig {
+            curly_quotes: true,
+            ..Default::default()
+        };
+
+        let html_handlebars = HtmlHandlebars::new();
+        assert_eq!(
+            "<h1>Some curly ‘quotes’?</h1>\n",
+            html_handlebars.render_print_content(&content, &path, &html_config)
+        );
     }
 }
