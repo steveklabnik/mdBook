@@ -320,16 +320,31 @@ function playpen_text(playpen) {
     function set_theme(theme) {
         let ace_theme;
 
+        function setSheetEnabled(sheetName, enabled) {
+            let element = stylesheets[sheetName];
+            let value = enabled ? "stylesheet" : "alternate stylesheet";
+            if (element.getAttribute("rel") != value)
+                element.setAttribute("rel", value);
+        }
+
+        function enable(sheetName, disabled) {
+            setSheetEnabled(sheetName, true);
+        }
+
+        function disable(sheetName, disabled) {
+            setSheetEnabled(sheetName, false);
+        }
+
         if (theme == 'coal' || theme == 'navy') {
-            stylesheets.ayuHighlight.disabled = true;
-            stylesheets.tomorrowNight.disabled = false;
-            stylesheets.highlight.disabled = true;
+            disable('ayuHighlight');
+            enable('tomorrowNight');
+            disable('highlight');
 
             ace_theme = "ace/theme/tomorrow_night";
         } else if (theme == 'ayu') {
-            stylesheets.ayuHighlight.disabled = false;
-            stylesheets.tomorrowNight.disabled = true;
-            stylesheets.highlight.disabled = true;
+            enable('ayuHighlight');
+            disable('tomorrowNight');
+            disable('highlight');
 
             ace_theme = "ace/theme/tomorrow_night";
         } else if (theme == 'book') {
@@ -339,9 +354,9 @@ function playpen_text(playpen) {
 
             ace_theme = "ace/theme/tomorrow_night";
         } else {
-            stylesheets.ayuHighlight.disabled = true;
-            stylesheets.tomorrowNight.disabled = true;
-            stylesheets.highlight.disabled = false;
+            disable('ayuHighlight');
+            disable('tomorrowNight');
+            enable('highlight');
 
             ace_theme = "ace/theme/dawn";
         }
