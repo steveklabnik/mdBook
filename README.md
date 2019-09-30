@@ -17,6 +17,7 @@
         <td colspan="2">
             <a href="https://crates.io/crates/mdbook"><img src="https://img.shields.io/crates/v/mdbook.svg"></a>
             <a href="LICENSE"><img src="https://img.shields.io/github/license/rust-lang-nursery/mdBook.svg"></a>
+            <a href="https://gitpod.io/from-referrer/"><img src="https://img.shields.io/badge/setup-automated-blue?logo=gitpod"></a>
         </td>
     </tr>
 </table>
@@ -79,8 +80,11 @@ There are multiple ways to install mdBook.
 
 4. **For Contributions**
 
-   If you want to contribute to mdBook you will have to clone the repository on
-   your local machine:
+   If you want to contribute to mdBook you have two options:
+
+   ***Local Development***
+
+   Clone the repository on your local machine:
 
    ```
    git clone https://github.com/rust-lang-nursery/mdBook.git
@@ -95,6 +99,11 @@ There are multiple ways to install mdBook.
    The resulting binary can be found in `mdBook/target/debug/` under the name
    `mdBook` or `mdBook.exe`.
 
+   ***Online Development***
+
+   You can start a readily configured online workspace using Gitpod.
+
+   [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io#https://github.com/rust-lang-nursery/mdBook)
 
 ## Usage
 

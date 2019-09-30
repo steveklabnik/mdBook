@@ -58,6 +58,13 @@ pub fn make_subcommand<'a, 'b>() -> App<'a, 'b> {
                 .empty_values(false)
                 .help("Port to use for WebSockets livereload connections"),
         )
+        .arg(
+            Arg::with_name("websocket-url")
+                .long("websocket-url")
+                .takes_value(true)
+                .empty_values(false)
+                .help("URL to use for WebSockets livereload connections (Defaults to 'ws://{websocket-hostname}:{websocket-port})')"),
+        )
         .arg_from_usage("-o, --open 'Opens the book server in a web browser'")
 }
 
@@ -67,17 +74,21 @@ pub fn execute(args: &ArgMatches) -> Result<()> {
     let mut book = MDBook::load(&book_dir)?;
 
     let port = args.value_of("port").unwrap();
-    let ws_port = args.value_of("websocket-port").unwrap();
     let hostname = args.value_of("hostname").unwrap();
-    let public_address = args.value_of("websocket-hostname").unwrap_or(hostname);
+    let ws_port = args.value_of("websocket-port").unwrap();
+    let ws_hostname = args.value_of("websocket-hostname").unwrap_or(hostname);
+    let ws_url = match args.value_of("websocket-url") {
+        Some(url) => String::from(url),
+        None => format!("ws://{}:{}", ws_hostname, ws_port)
+    };
+    let ws_url = &ws_url[..];
     let open_browser = args.is_present("open");
 
     let address = format!("{}:{}", hostname, port);
     let ws_address = format!("{}:{}", hostname, ws_port);
 
-    let livereload_url = format!("ws://{}:{}", public_address, ws_port);
     book.config
-        .set("output.html.livereload-url", &livereload_url)?;
+        .set("output.html.livereload-url", &ws_url)?;
 
     if let Some(dest_dir) = args.value_of("dest-dir") {
         book.config.build.build_dir = dest_dir.into();
@@ -117,7 +128,7 @@ pub fn execute(args: &ArgMatches) -> Result<()> {
         let result = MDBook::load(&book_dir)
             .and_then(|mut b| {
                 b.config
-                    .set("output.html.livereload-url", &livereload_url)?;
+                    .set("output.html.livereload-url", &ws_url)?;
                 Ok(b)
             })
             .and_then(|b| b.build());

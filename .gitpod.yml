@@ -1,0 +1,12 @@
+ports:
+- port: 3000
+  onOpen: open-preview
+- port: 3001
+  onOpen: ignore
+tasks:
+- init: cargo build
+  command: >
+    cd ./book-example &&
+    ../target/debug/mdbook serve \
+        --hostname 0.0.0.0 \
+        --websocket-url $(echo $GITPOD_WORKSPACE_URL | sed 's/https:\/\//wss:\/\/3001-/g')
