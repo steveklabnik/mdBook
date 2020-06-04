@@ -117,7 +117,7 @@
                             <i class="fa fa-bars"></i>
                         </button>
                         <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                            <i class="fa fa-palette"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
                             <li role="none"><button role="menuitem" class="theme" id="light">{{ theme_option "Light" }}</button></li>
@@ -141,7 +141,7 @@
                         </a>
                         {{#if git_repository_url}}
                         <a href="{{git_repository_url}}" title="Git repository" aria-label="Git repository">
-                            <i id="git-repository-button" class="fa {{git_repository_icon}}"></i>
+                            <i id="git-repository-button" class="fab {{git_repository_icon}}"></i>
                         </a>
                         {{/if}}
                     </div>
