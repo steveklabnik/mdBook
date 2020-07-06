@@ -4,6 +4,7 @@ use crate::utils::{
     take_rustdoc_include_lines,
 };
 use regex::{CaptureMatches, Captures, Regex};
+use std::collections::HashMap;
 use std::fs;
 use std::ops::{Bound, Range, RangeBounds, RangeFrom, RangeFull, RangeTo};
 use std::path::{Path, PathBuf};
@@ -116,6 +117,7 @@ enum LinkType<'a> {
     Include(PathBuf, RangeOrAnchor),
     Playground(PathBuf, Vec<&'a str>),
     RustdocInclude(PathBuf, RangeOrAnchor),
+    Template(PathBuf, HashMap<String, String>),
 }
 
 #[derive(PartialEq, Debug, Clone)]
@@ -185,6 +187,7 @@ impl<'a> LinkType<'a> {
             LinkType::Include(p, _) => Some(return_relative_path(base, &p)),
             LinkType::Playground(p, _) => Some(return_relative_path(base, &p)),
             LinkType::RustdocInclude(p, _) => Some(return_relative_path(base, &p)),
+            LinkType::Template(p, _) => Some(return_relative_path(base, &p)),
         }
     }
 }
@@ -224,6 +227,19 @@ fn parse_range_or_anchor(parts: Option<&str>) -> RangeOrAnchor {
         (None, Some(Ok(end))) => RangeOrAnchor::Range(LineRange::from(..end)),
         (None, None) | (None, Some(Err(_))) => RangeOrAnchor::Range(LineRange::from(RangeFull)),
     }
+}
+
+fn parse_template_path(arg: &str) -> LinkType<'static> {
+    let mut param_pairs = arg.split_whitespace();
+    let path: PathBuf = param_pairs.next().unwrap().into();
+    let mut dict = HashMap::new();
+    param_pairs.for_each(|p| {
+        let mut pair = p.splitn(2, ':');
+        let key = pair.next().unwrap().to_string();
+        let value = pair.next().unwrap().to_string();
+        dict.insert(key, value);
+    });
+    LinkType::Template(path, dict)
 }
 
 fn parse_include_path(path: &str) -> LinkType<'static> {
@@ -272,6 +288,7 @@ impl<'a> Link<'a> {
                         Some(LinkType::Playground(pth.into(), props))
                     }
                     ("rustdoc_include", Some(pth)) => Some(parse_rustdoc_include_path(pth)),
+                    ("template", Some(pth)) => Some(parse_template_path(pth)),
                     _ => None,
                 }
             }
@@ -349,6 +366,22 @@ impl<'a> Link<'a> {
                     attrs.join(","),
                     contents
                 ))
+            }
+            LinkType::Template(ref pat, ref dict) => {
+                let target = base.join(pat);
+                fs::read_to_string(&target)
+                    .map(|s| {
+                        dict.iter().fold(s, |r, (key, value)| {
+                            r.replace(format!("{{ {} }}", key).as_str(), value)
+                        })
+                    })
+                    .with_context(|| {
+                        format!(
+                            "Could not read file for template {} ({})",
+                            self.link_text,
+                            target.display(),
+                        )
+                    })
             }
         }
     }
