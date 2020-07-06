@@ -4,5 +4,6 @@ stdenv.mkDerivation {
   buildInputs = [
     pkgs.cargo
     pkgs.gcc
+    pkgs.rustup
   ];
 }
