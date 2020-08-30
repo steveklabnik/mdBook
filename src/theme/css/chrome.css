@@ -493,3 +493,50 @@ ul#searchresults span.teaser em {
     border-top-left-radius: inherit;
     border-top-right-radius: inherit;
 }
+
+/* Language Menu Popup */
+
+.language-popup {
+    position: absolute;
+    left: 150px;
+    top: var(--menu-bar-height);
+    z-index: 1000;
+    border-radius: 4px;
+    font-size: 0.7em;
+    color: var(--fg);
+    background: var(--theme-popup-bg);
+    border: 1px solid var(--theme-popup-border);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: none;
+}
+.language-popup .default {
+    color: var(--icons);
+}
+.language-popup .language {
+    width: 100%;
+    border: 0;
+    margin: 0;
+    padding: 2px 10px;
+    line-height: 25px;
+    white-space: nowrap;
+    text-align: left;
+    cursor: pointer;
+    color: inherit;
+    background: inherit;
+    font-size: inherit;
+}
+.language-popup .language:hover {
+    background-color: var(--theme-hover);
+}
+.language-popup .language:hover:first-child,
+.language-popup .language:hover:last-child {
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
+}
+
+.language-popup a {
+    color: var(--fg);
+    text-decoration: none;
+}

@@ -8,6 +8,7 @@ book-example/book
 
 .vscode
 tests/dummy_book/book/
+tests/localized_book/book/
 
 # Ignore Jetbrains specific files.
 .idea/

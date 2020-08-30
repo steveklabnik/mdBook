@@ -1,4 +1,4 @@
-use crate::get_book_dir;
+use crate::{get_book_dir, get_build_opts};
 use clap::{App, Arg, ArgMatches, SubCommand};
 use mdbook::errors::Result;
 use mdbook::MDBook;
@@ -25,6 +25,9 @@ pub fn make_subcommand<'a, 'b>() -> App<'a, 'b> {
             .multiple(true)
             .empty_values(false)
             .help("A comma-separated list of directories to add to {n}the crate search path when building tests"))
+        .arg_from_usage("-l, --language=[language] 'Language to render the compiled book in.{n}\
+                         Only valid if the [language] table in the config is not empty.{n}\
+                         If omitted, builds all translations and provides a menu in the generated output for switching between them.'")
 }
 
 // test command implementation
@@ -34,7 +37,8 @@ pub fn execute(args: &ArgMatches) -> Result<()> {
         .map(std::iter::Iterator::collect)
         .unwrap_or_default();
     let book_dir = get_book_dir(args);
-    let mut book = MDBook::load(&book_dir)?;
+    let build_opts = get_build_opts(args);
+    let mut book = MDBook::load_with_build_opts(&book_dir, build_opts)?;
 
     if let Some(dest_dir) = args.value_of("dest-dir") {
         book.config.build.build_dir = dest_dir.into();

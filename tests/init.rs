@@ -10,7 +10,13 @@ use tempfile::Builder as TempFileBuilder;
 /// are created.
 #[test]
 fn base_mdbook_init_should_create_default_content() {
-    let created_files = vec!["book", "src", "src/SUMMARY.md", "src/chapter_1.md"];
+    let created_files = vec![
+        "book",
+        "src",
+        "src/en",
+        "src/en/SUMMARY.md",
+        "src/en/chapter_1.md",
+    ];
 
     let temp = TempFileBuilder::new().prefix("mdbook").tempdir().unwrap();
     for file in &created_files {
@@ -28,7 +34,7 @@ fn base_mdbook_init_should_create_default_content() {
     let contents = fs::read_to_string(temp.path().join("book.toml")).unwrap();
     assert_eq!(
         contents,
-        "[book]\nauthors = []\nlanguage = \"en\"\nmultilingual = false\nsrc = \"src\"\n"
+        "[book]\nauthors = []\nlanguage = \"en\"\nsrc = \"src\"\n[language.en]\nname = \"English\"\n"
     );
 }
 
@@ -39,7 +45,7 @@ fn run_mdbook_init_should_create_content_from_summary() {
     let created_files = vec!["intro.md", "first.md", "outro.md"];
 
     let temp = TempFileBuilder::new().prefix("mdbook").tempdir().unwrap();
-    let src_dir = temp.path().join("src");
+    let src_dir = temp.path().join("src").join("en");
     fs::create_dir_all(src_dir.clone()).unwrap();
     static SUMMARY: &str = r#"# Summary
 
@@ -66,7 +72,13 @@ fn run_mdbook_init_should_create_content_from_summary() {
 /// files, then call `mdbook init`.
 #[test]
 fn run_mdbook_init_with_custom_book_and_src_locations() {
-    let created_files = vec!["out", "in", "in/SUMMARY.md", "in/chapter_1.md"];
+    let created_files = vec![
+        "out",
+        "in",
+        "in/en",
+        "in/en/SUMMARY.md",
+        "in/en/chapter_1.md",
+    ];
 
     let temp = TempFileBuilder::new().prefix("mdbook").tempdir().unwrap();
     for file in &created_files {

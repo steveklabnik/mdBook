@@ -49,6 +49,7 @@
 
 #![deny(missing_docs)]
 
+use anyhow::anyhow;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::HashMap;
 use std::env;
@@ -72,6 +73,8 @@ pub struct Config {
     pub build: BuildConfig,
     /// Information about Rust language support.
     pub rust: RustConfig,
+    /// Information about localizations of this book.
+    pub language: LanguageConfig,
     rest: Value,
 }
 
@@ -250,6 +253,136 @@ impl Config {
         self.get(&key).and_then(Value::as_table)
     }
 
+    /// Gets the language configured for a book.
+    pub fn get_language<I: AsRef<str>>(&self, index: Option<I>) -> Result<Option<String>> {
+        match self.default_language() {
+            // Languages have been specified, assume directory structure with
+            // language subfolders.
+            Some(ref default) => match index {
+                // Make sure that the language we passed was actually declared
+                // in the config, and return an `Err` if not.
+                Some(lang_ident) => match self.language.0.get(lang_ident.as_ref()) {
+                    Some(_) => Ok(Some(lang_ident.as_ref().into())),
+                    None => Err(anyhow!(
+                        "Expected [language.{}] to be declared in book.toml",
+                        lang_ident.as_ref()
+                    )),
+                },
+                // Use the default specified in book.toml.
+                None => Ok(Some(default.to_string())),
+            },
+
+            // No [language] table was declared in book.toml.
+            None => match index {
+                // We passed in a language from the frontend, but the config
+                // offers no languages.
+                Some(lang_ident) => Err(anyhow!(
+                    "No [language] table in book.toml, expected [language.{}] to be declared",
+                    lang_ident.as_ref()
+                )),
+                // Default to previous non-localized behavior.
+                None => Ok(None),
+            },
+        }
+    }
+
+    /// Get the source directory of a localized book corresponding to language ident `index`.
+    pub fn get_localized_src_path<I: AsRef<str>>(&self, index: Option<I>) -> Result<PathBuf> {
+        let language = self.get_language(index)?;
+
+        match language {
+            Some(lang_ident) => {
+                let mut buf = PathBuf::new();
+                buf.push(self.book.src.clone());
+                buf.push(lang_ident);
+                Ok(buf)
+            }
+
+            // No [language] table was declared in book.toml. Preserve backwards
+            // compatibility by just returning `src`.
+            None => Ok(self.book.src.clone()),
+        }
+    }
+
+    /// Gets the localized title of the book.
+    pub fn get_localized_title<I: AsRef<str>>(&self, index: Option<I>) -> Option<String> {
+        let language = self.get_language(index).unwrap();
+
+        match language {
+            Some(lang_ident) => self
+                .language
+                .0
+                .get(&lang_ident)
+                .unwrap()
+                .title
+                .clone()
+                .or(self.book.title.clone()),
+            None => self.book.title.clone(),
+        }
+    }
+
+    /// Gets the localized description of the book.
+    pub fn get_localized_description<I: AsRef<str>>(&self, index: Option<I>) -> Option<String> {
+        let language = self.get_language(index).unwrap();
+
+        match language {
+            Some(lang_ident) => self
+                .language
+                .0
+                .get(&lang_ident)
+                .unwrap()
+                .description
+                .clone()
+                .or(self.book.description.clone()),
+            None => self.book.description.clone(),
+        }
+    }
+
+    /// Get the fallback source directory of a book. If chapters/sections are
+    /// missing in a localization, any links to them will gracefully degrade to
+    /// the files that exist in this directory.
+    pub fn get_fallback_src_path(&self) -> PathBuf {
+        match self.default_language() {
+            // Languages have been specified, assume directory structure with
+            // language subfolders.
+            Some(default) => {
+                let mut buf = PathBuf::new();
+                buf.push(self.book.src.clone());
+                buf.push(default);
+                buf
+            }
+
+            // No default language was configured in book.toml. Preserve
+            // backwards compatibility by just returning `src`.
+            None => self.book.src.clone(),
+        }
+    }
+
+    /// If true, mdBook should assume there are subdirectories under src/
+    /// corresponding to the localizations in the config. If false, src/ is a
+    /// single directory containing the summary file and the rest.
+    pub fn has_localized_dir_structure(&self) -> bool {
+        !self.language.0.is_empty()
+    }
+
+    /// Obtains the default language for this config.
+    pub fn default_language(&self) -> Option<String> {
+        if self.has_localized_dir_structure() {
+            let language_ident = self
+                .book
+                .language
+                .clone()
+                .expect("Config has [language] table, but `book.language` not was declared");
+            self.language.0.get(&language_ident).expect(&format!(
+                "Expected [language.{}] to be declared in book.toml",
+                language_ident
+            ));
+            Some(language_ident)
+        } else {
+            None
+        }
+    }
+
     fn from_legacy(mut table: Value) -> Config {
         let mut cfg = Config::default();
 
@@ -290,6 +423,7 @@ impl Default for Config {
             book: BookConfig::default(),
             build: BuildConfig::default(),
             rust: RustConfig::default(),
+            language: LanguageConfig::default(),
             rest: Value::Table(Table::default()),
         }
     }
@@ -335,9 +469,41 @@ impl<'de> Deserialize<'de> for Config {
             .and_then(|value| value.try_into().ok())
             .unwrap_or_default();
 
+        let language: LanguageConfig = table
+            .remove("language")
+            .and_then(|value| value.try_into().ok())
+            .unwrap_or_default();
+
+        if !language.0.is_empty() {
+            if book.language.is_none() {
+                use serde::de::Error;
+                return Err(D::Error::custom(
+                    "If the [language] table is specified, then `book.language` must be declared",
+                ));
+            }
+            let language_ident = book.language.clone().unwrap();
+            if language.0.get(&language_ident).is_none() {
+                use serde::de::Error;
+                return Err(D::Error::custom(format!(
+                    "Expected [language.{}] to be declared in book.toml",
+                    language_ident
+                )));
+            }
+            for (ident, language) in language.0.iter() {
+                if language.name.is_empty() {
+                    use serde::de::Error;
+                    return Err(D::Error::custom(format!(
+                        "`name` property for [language.{}] must be non-empty",
+                        ident
+                    )));
+                }
+            }
+        }
+
         Ok(Config {
             book,
             build,
+            language,
             rust,
             rest: Value::Table(table),
         })
@@ -355,6 +521,12 @@ impl Serialize for Config {
         if self.rust != RustConfig::default() {
             let rust_config = Value::try_from(&self.rust).expect("should always be serializable");
             table.insert("rust", rust_config);
+        }
+
+        if !self.language.0.is_empty() {
+            let language_config =
+                Value::try_from(&self.language).expect("should always be serializable");
+            table.insert("language", language_config);
         }
 
         table.serialize(s)
@@ -404,8 +576,6 @@ pub struct BookConfig {
     pub description: Option<String>,
     /// Location of the book source relative to the book's root directory.
     pub src: PathBuf,
-    /// Does this book support more than one language?
-    pub multilingual: bool,
     /// The main language of the book.
     pub language: Option<String>,
 }
@@ -417,7 +587,6 @@ impl Default for BookConfig {
             authors: Vec::new(),
             description: None,
             src: PathBuf::from("src"),
-            multilingual: false,
             language: Some(String::from("en")),
         }
     }
@@ -647,6 +816,25 @@ impl Default for Search {
     }
 }
 
+/// Configuration for localizations of this book
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct LanguageConfig(pub HashMap<String, Language>);
+
+/// Configuration for a single localization
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(default, rename_all = "kebab-case")]
+pub struct Language {
+    /// Human-readable name of the language.
+    pub name: String,
+    /// Localized title of the book.
+    pub title: Option<String>,
+    /// The authors of the translation.
+    pub authors: Option<Vec<String>>,
+    /// Localized description of the book.
+    pub description: Option<String>,
+}
+
 /// Allows you to "update" any arbitrary field in a struct by round-tripping via
 /// a `toml::Value`.
 ///
@@ -709,6 +897,15 @@ mod tests {
         [preprocessor.first]
 
         [preprocessor.second]
+
+        [language.en]
+        name = "English"
+
+        [language.ja]
+        name = "日本語"
+        title = "なんかの本"
+        description = "何の役にも立たない本"
+        authors = ["Ruin0x11"]
         "#;
 
     #[test]
@@ -719,7 +916,6 @@ mod tests {
             title: Some(String::from("Some Book")),
             authors: vec![String::from("Michael-F-Bryan <michaelfbryan@gmail.com>")],
             description: Some(String::from("A completely useless book")),
-            multilingual: true,
             src: PathBuf::from("source"),
             language: Some(String::from("ja")),
         };
@@ -755,6 +951,25 @@ mod tests {
             .collect(),
             ..Default::default()
         };
+        let mut language_should_be = LanguageConfig::default();
+        language_should_be.0.insert(
+            String::from("en"),
+            Language {
+                name: String::from("English"),
+                title: None,
+                description: None,
+                authors: None,
+            },
+        );
+        language_should_be.0.insert(
+            String::from("ja"),
+            Language {
+                name: String::from("日本語"),
+                title: Some(String::from("なんかの本")),
+                description: Some(String::from("何の役にも立たない本")),
+                authors: Some(vec![String::from("Ruin0x11")]),
+            },
+        );
 
         let got = Config::from_str(src).unwrap();
 
@@ -762,6 +977,8 @@ mod tests {
         assert_eq!(got.build, build_should_be);
         assert_eq!(got.rust, rust_should_be);
         assert_eq!(got.html_config().unwrap(), html_should_be);
+        assert_eq!(got.language, language_should_be);
+        assert_eq!(got.default_language(), Some(String::from("ja")));
     }
 
     #[test]
@@ -1034,5 +1251,40 @@ mod tests {
         let html_config = got.html_config().unwrap();
         assert_eq!(html_config.input_404, Some("missing.md".to_string()));
         assert_eq!(&get_404_output_file(&html_config.input_404), "missing.html");
+    }
+
+    #[test]
+    fn book_language_without_languages_table() {
+        let src = r#"
+        [book]
+        language = "en"
+        "#;
+
+        let got = Config::from_str(src).unwrap();
+        assert_eq!(got.default_language(), None);
+    }
+
+    #[test]
+    fn default_language_must_exist_in_languages_table() {
+        let src = r#"
+        [language.ja]
+        name = "日本語"
+        "#;
+
+        let got = Config::from_str(src);
+        assert!(got.is_err());
+    }
+
+    #[test]
+    fn language_must_have_name() {
+        let src = r#"
+        [book]
+        language = "en"
+
+        [language.en]
+        "#;
+
+        let got = Config::from_str(src);
+        assert!(got.is_err());
     }
 }

@@ -2,6 +2,7 @@ mod dummy_book;
 
 use crate::dummy_book::DummyBook;
 use mdbook::book::Book;
+use mdbook::build_opts::BuildOpts;
 use mdbook::config::Config;
 use mdbook::errors::*;
 use mdbook::preprocess::{Preprocessor, PreprocessorContext};
@@ -48,8 +49,9 @@ fn mdbook_runs_preprocessors() {
 
     let temp = DummyBook::new().build().unwrap();
     let cfg = Config::default();
+    let build_opts = BuildOpts::default();
 
-    let mut book = MDBook::load_with_config(temp.path(), cfg).unwrap();
+    let mut book = MDBook::load_with_config(temp.path(), cfg, build_opts).unwrap();
     book.with_preprocessor(Spy(Arc::clone(&spy)));
     book.build().unwrap();
 
@@ -68,8 +70,9 @@ fn mdbook_runs_renderers() {
 
     let temp = DummyBook::new().build().unwrap();
     let cfg = Config::default();
+    let build_opts = BuildOpts::default();
 
-    let mut book = MDBook::load_with_config(temp.path(), cfg).unwrap();
+    let mut book = MDBook::load_with_config(temp.path(), cfg, build_opts).unwrap();
     book.with_renderer(Spy(Arc::clone(&spy)));
     book.build().unwrap();
 

@@ -131,6 +131,16 @@
                             <i class="fa fa-search"></i>
                         </button>
                         {{/if}}
+                        {{#if languages_enabled}}
+                        <button id="language-toggle" class="icon-button" type="button" title="Select language" aria-label="Select language" aria-haspopup="true" aria-expanded="false" aria-controls="language-list">
+                            <i class="fa fa-globe"></i>
+                        </button>
+                        <ul id="language-list" class="language-popup" aria-label="Languages" role="menu">
+                          {{#each languages}}
+                            <li role="none">{{ language_option this }}</li>
+                          {{/each}}
+                        </ul>
+                        {{/if}}
                     </div>
 
                     <h1 class="menu-title">{{ book_title }}</h1>

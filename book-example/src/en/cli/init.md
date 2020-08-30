@@ -14,13 +14,19 @@ up for you:
 ```bash
 book-test/
 ├── book
+├── book.toml
 └── src
-    ├── chapter_1.md
-    └── SUMMARY.md
+    └── en
+        ├── chapter_1.md
+        └── SUMMARY.md
 ```
 
-- The `src` directory is where you write your book in markdown. It contains all
-  the source files, configuration files, etc.
+- The `src` directory is where you write your book in Markdown. It contains all
+  the source files for each translation of your book. By default, a directory
+  for the English translation is created, `src/en`.
+
+- The `book.toml` file holds configuration about how your book gets rendered.
+  See the [configuration](../format/config.md) section for more details.
 
 - The `book` directory is where your book is rendered. All the output is ready
   to be uploaded to a server to be seen by your audience.

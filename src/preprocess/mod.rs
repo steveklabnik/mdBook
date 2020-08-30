@@ -9,6 +9,7 @@ mod index;
 mod links;
 
 use crate::book::Book;
+use crate::build_opts::BuildOpts;
 use crate::config::Config;
 use crate::errors::*;
 
@@ -20,6 +21,11 @@ use std::path::PathBuf;
 pub struct PreprocessorContext {
     /// The location of the book directory on disk.
     pub root: PathBuf,
+    /// The language of the book being built. Is only `Some` if the book is part
+    /// of a multilingual build output.
+    pub language_ident: Option<String>,
+    /// The build options passed from the frontend.
+    pub build_opts: BuildOpts,
     /// The book configuration (`book.toml`).
     pub config: Config,
     /// The `Renderer` this preprocessor is being used with.
@@ -32,14 +38,27 @@ pub struct PreprocessorContext {
 
 impl PreprocessorContext {
     /// Create a new `PreprocessorContext`.
-    pub(crate) fn new(root: PathBuf, config: Config, renderer: String) -> Self {
+    pub(crate) fn new(
+        root: PathBuf,
+        language_ident: Option<String>,
+        build_opts: BuildOpts,
+        config: Config,
+        renderer: String,
+    ) -> Self {
         PreprocessorContext {
             root,
+            language_ident,
+            build_opts,
             config,
             renderer,
             mdbook_version: crate::MDBOOK_VERSION.to_string(),
             __non_exhaustive: (),
         }
+    }
+
+    /// Get the directory containing this book's source files.
+    pub fn source_dir(&self) -> PathBuf {
+        self.root.join(&self.config.book.src)
     }
 }
 

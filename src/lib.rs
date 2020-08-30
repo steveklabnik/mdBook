@@ -98,6 +98,7 @@ extern crate serde_json;
 extern crate pretty_assertions;
 
 pub mod book;
+pub mod build_opts;
 pub mod config;
 pub mod preprocess;
 pub mod renderer;

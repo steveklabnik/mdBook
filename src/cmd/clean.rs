@@ -1,4 +1,4 @@
-use crate::get_book_dir;
+use crate::{get_book_dir, get_build_opts};
 use anyhow::Context;
 use clap::{App, ArgMatches, SubCommand};
 use mdbook::MDBook;
@@ -18,12 +18,18 @@ pub fn make_subcommand<'a, 'b>() -> App<'a, 'b> {
             "[dir] 'Root directory for the book{n}\
              (Defaults to the Current Directory when omitted)'",
         )
+        .arg_from_usage(
+            "-l, --language=[language] 'Language to render the compiled book in.{n}\
+                         Only valid if the [language] table in the config is not empty.{n}\
+                         If omitted, builds all translations and provides a menu in the generated output for switching between them.'",
+        )
 }
 
 // Clean command implementation
 pub fn execute(args: &ArgMatches) -> mdbook::errors::Result<()> {
     let book_dir = get_book_dir(args);
-    let book = MDBook::load(&book_dir)?;
+    let build_opts = get_build_opts(args);
+    let book = MDBook::load_with_build_opts(&book_dir, build_opts)?;
 
     let dir_to_remove = match args.value_of("dest-dir") {
         Some(dest_dir) => dest_dir.into(),

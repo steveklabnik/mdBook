@@ -1,0 +1,35 @@
+[book]
+title = "Localized Book"
+description = "Testing mdBook localization features"
+authors = ["Ruin0x11"]
+language = "en"
+
+[rust]
+edition = "2018"
+
+[output.html]
+mathjax-support = true
+site-url = "/mdBook/"
+
+[output.html.playground]
+editable = true
+line-numbers = true
+
+[output.html.search]
+limit-results = 20
+use-boolean-and = true
+boost-title = 2
+boost-hierarchy = 2
+boost-paragraph = 1
+expand = true
+heading-split-level = 2
+
+[language.en]
+name = "English"
+default = true
+
+[language.ja]
+name = "日本語"
+title = "翻訳された本"
+description = "mdBookの翻訳機能のテスト用の本"
+authors = ["Ruin0x11"]

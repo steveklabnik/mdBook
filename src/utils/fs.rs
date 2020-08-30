@@ -47,6 +47,9 @@ pub fn path_to_root<P: Into<PathBuf>>(path: P) -> String {
         .fold(String::new(), |mut s, c| {
             match c {
                 Component::Normal(_) => s.push_str("../"),
+                Component::ParentDir => {
+                    s.truncate(s.len() - 3);
+                }
                 _ => {
                     debug!("Other path component... {:?}", c);
                 }
@@ -186,7 +189,7 @@ pub fn get_404_output_file(input_404: &Option<String>) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::copy_files_except_ext;
+    use super::{copy_files_except_ext, path_to_root};
     use std::fs;
 
     #[test]
@@ -249,5 +252,11 @@ mod tests {
         if !(&tmp.path().join("output/sub_dir_exists/file.txt")).exists() {
             panic!("output/sub_dir/file.png should exist")
         }
+    }
+
+    #[test]
+    fn test_path_to_root() {
+        assert_eq!(path_to_root("some/relative/path"), "../../");
+        assert_eq!(path_to_root("some/relative/other/../path"), "../../");
     }
 }

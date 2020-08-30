@@ -49,7 +49,7 @@ be adapted for other preprocessors.
 ```rust
 // nop-preprocessors.rs
 
-{{#include ../../../examples/nop-preprocessor.rs}}
+{{#include ../../../../examples/nop-preprocessor.rs}}
 ```
 </details>
 

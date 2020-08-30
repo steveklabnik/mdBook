@@ -6,6 +6,7 @@ mod dummy_book;
 use crate::dummy_book::{assert_contains_strings, assert_doesnt_contain_strings, DummyBook};
 
 use anyhow::Context;
+use mdbook::build_opts::BuildOpts;
 use mdbook::config::Config;
 use mdbook::errors::*;
 use mdbook::utils::fs::write_file;
@@ -325,8 +326,9 @@ fn failure_on_missing_file() {
 
     let mut cfg = Config::default();
     cfg.build.create_missing = false;
+    let build_opts = BuildOpts::default();
 
-    let got = MDBook::load_with_config(temp.path(), cfg);
+    let got = MDBook::load_with_config(temp.path(), cfg, build_opts);
     assert!(got.is_err());
 }
 
@@ -338,9 +340,10 @@ fn create_missing_file_with_config() {
 
     let mut cfg = Config::default();
     cfg.build.create_missing = true;
+    let build_opts = BuildOpts::default();
 
     assert!(!temp.path().join("src").join("intro.md").exists());
-    let _md = MDBook::load_with_config(temp.path(), cfg).unwrap();
+    let _md = MDBook::load_with_config(temp.path(), cfg, build_opts).unwrap();
     assert!(temp.path().join("src").join("intro.md").exists());
 }
 
@@ -428,7 +431,8 @@ fn by_default_mdbook_use_index_preprocessor_to_convert_readme_to_index() {
     let mut cfg = Config::default();
     cfg.set("book.src", "src2")
         .expect("Couldn't set config.book.src to \"src2\".");
-    let md = MDBook::load_with_config(temp.path(), cfg).unwrap();
+    let build_opts = BuildOpts::default();
+    let md = MDBook::load_with_config(temp.path(), cfg, build_opts).unwrap();
     md.build().unwrap();
 
     let first_index = temp.path().join("book").join("first").join("index.html");
@@ -459,7 +463,7 @@ fn theme_dir_overrides_work_correctly() {
     let md = MDBook::load(book_dir).unwrap();
     md.build().unwrap();
 
-    let built_index = book_dir.join("book").join("index.html");
+    let built_index = book_dir.join("book").join("en").join("index.html");
     dummy_book::assert_contains_strings(built_index, &["This is a modified index.hbs!"]);
 }
 

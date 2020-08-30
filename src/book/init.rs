@@ -3,7 +3,7 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use super::MDBook;
-use crate::config::Config;
+use crate::config::{Config, Language};
 use crate::errors::*;
 use crate::theme;
 
@@ -14,23 +14,51 @@ pub struct BookBuilder {
     create_gitignore: bool,
     config: Config,
     copy_theme: bool,
+    language_ident: String,
+}
+
+fn add_default_language(cfg: &mut Config, language_ident: String) {
+    let language = Language {
+        name: String::from("English"),
+        title: None,
+        authors: None,
+        description: None,
+    };
+    cfg.language.0.insert(language_ident.clone(), language);
+    cfg.book.language = Some(language_ident);
 }
 
 impl BookBuilder {
     /// Create a new `BookBuilder` which will generate a book in the provided
     /// root directory.
     pub fn new<P: Into<PathBuf>>(root: P) -> BookBuilder {
+        let language_ident = String::from("en");
+        let mut cfg = Config::default();
+        add_default_language(&mut cfg, language_ident.clone());
+
         BookBuilder {
             root: root.into(),
             create_gitignore: false,
-            config: Config::default(),
+            config: cfg,
             copy_theme: false,
+            language_ident: language_ident,
         }
     }
 
+    /// Get the output source directory of the builder.
+    pub fn source_dir(&self) -> PathBuf {
+        let src = self
+            .config
+            .get_localized_src_path(Some(&self.language_ident))
+            .unwrap();
+        self.root.join(src)
+    }
+
     /// Set the `Config` to be used.
-    pub fn with_config(&mut self, cfg: Config) -> &mut BookBuilder {
+    pub fn with_config(&mut self, mut cfg: Config) -> &mut BookBuilder {
+        add_default_language(&mut cfg, self.language_ident.clone());
         self.config = cfg;
+
         self
     }
 
@@ -172,7 +200,7 @@ impl BookBuilder {
 
     fn create_stub_files(&self) -> Result<()> {
         debug!("Creating example book contents");
-        let src_dir = self.root.join(&self.config.book.src);
+        let src_dir = self.source_dir();
 
         let summary = src_dir.join("SUMMARY.md");
         if !summary.exists() {
@@ -193,10 +221,10 @@ impl BookBuilder {
     }
 
     fn create_directory_structure(&self) -> Result<()> {
-        debug!("Creating directory tree");
+        debug!("Creating directory tree at {}", self.root.display());
         fs::create_dir_all(&self.root)?;
 
-        let src = self.root.join(&self.config.book.src);
+        let src = self.source_dir();
         fs::create_dir_all(&src)?;
 
         let build = self.root.join(&self.config.build.build_dir);

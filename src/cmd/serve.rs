@@ -1,9 +1,10 @@
 #[cfg(feature = "watch")]
 use super::watch;
-use crate::{get_book_dir, open};
+use crate::{get_book_dir, get_build_opts, open};
 use clap::{App, Arg, ArgMatches, SubCommand};
 use futures_util::sink::SinkExt;
 use futures_util::StreamExt;
+use http::Uri;
 use mdbook::errors::*;
 use mdbook::utils;
 use mdbook::utils::fs::get_404_output_file;
@@ -49,12 +50,18 @@ pub fn make_subcommand<'a, 'b>() -> App<'a, 'b> {
                 .help("Port to use for HTTP connections"),
         )
         .arg_from_usage("-o, --open 'Opens the book server in a web browser'")
+        .arg_from_usage(
+            "-l, --language=[language] 'Language to render the compiled book in.{n}\
+                         Only valid if the [language] table in the config is not empty.{n}\
+                         If omitted, builds all translations and provides a menu in the generated output for switching between them.'",
+        )
 }
 
 // Serve command implementation
 pub fn execute(args: &ArgMatches) -> Result<()> {
     let book_dir = get_book_dir(args);
-    let mut book = MDBook::load(&book_dir)?;
+    let build_opts = get_build_opts(args);
+    let mut book = MDBook::load_with_build_opts(&book_dir, build_opts.clone())?;
 
     let port = args.value_of("port").unwrap();
     let hostname = args.value_of("hostname").unwrap();
@@ -76,6 +83,18 @@ pub fn execute(args: &ArgMatches) -> Result<()> {
     update_config(&mut book);
     book.build()?;
 
+    let language: Option<String> = match build_opts.language_ident {
+        // index.html will be at the root directory.
+        Some(_) => None,
+        None => match book.config.default_language() {
+            // If book has translations, index.html will be under src/en/ or
+            // similar.
+            Some(lang_ident) => Some(lang_ident.clone()),
+            // If not, it will be at the root.
+            None => None,
+        },
+    };
+
     let sockaddr: SocketAddr = address
         .to_socket_addrs()?
         .next()
@@ -94,7 +113,7 @@ pub fn execute(args: &ArgMatches) -> Result<()> {
 
     let reload_tx = tx.clone();
     let thread_handle = std::thread::spawn(move || {
-        serve(build_dir, sockaddr, reload_tx, &file_404);
+        serve(build_dir, sockaddr, reload_tx, &file_404, language);
     });
 
     let serving_url = format!("http://{}", address);
@@ -110,10 +129,11 @@ pub fn execute(args: &ArgMatches) -> Result<()> {
         info!("Building book...");
 
         // FIXME: This area is really ugly because we need to re-set livereload :(
-        let result = MDBook::load(&book_dir).and_then(|mut b| {
-            update_config(&mut b);
-            b.build()
-        });
+        let result =
+            MDBook::load_with_build_opts(&book_dir, build_opts.clone()).and_then(|mut b| {
+                update_config(&mut b);
+                b.build()
+            });
 
         if let Err(e) = result {
             error!("Unable to load the book");
@@ -134,6 +154,7 @@ async fn serve(
     address: SocketAddr,
     reload_tx: broadcast::Sender<Message>,
     file_404: &str,
+    language: Option<String>,
 ) {
     // A warp Filter which captures `reload_tx` and provides an `rx` copy to
     // receive reload messages.
@@ -157,9 +178,36 @@ async fn serve(
         });
     // A warp Filter that serves from the filesystem.
     let book_route = warp::fs::dir(build_dir.clone());
-    // The fallback route for 404 errors
-    let fallback_route = warp::fs::file(build_dir.join(file_404))
-        .map(|reply| warp::reply::with_status(reply, warp::http::StatusCode::NOT_FOUND));
-    let routes = livereload.or(book_route).or(fallback_route);
-    warp::serve(routes).run(address).await;
+    if let Some(lang_ident) = language {
+        // Redirect root to the default translation directory, if serving a localized book.
+        // NOTE: This can't be `/{lang_ident}`, or the static assets won't get loaded.
+        // BUG: Redirects get cached if you change the --language parameter,
+        // meaning you'll get a 404 unless you disable the cache in Developer
+        // Tools.
+        let index_for_language = format!("/{}/index.html", lang_ident)
+            .parse::<Uri>()
+            .unwrap();
+        let redirect_to_index =
+            warp::path::end().map(move || warp::redirect(index_for_language.clone()));
+
+        // BUG: It is not possible to conditionally redirect to the correct 404
+        // page depending on the URL using warp, so just redirect to the one in
+        // the default language.
+        // See: https://github.com/seanmonstar/warp/issues/171
+        let fallback_route = warp::fs::file(build_dir.join(lang_ident).join(file_404))
+            .map(|reply| warp::reply::with_status(reply, warp::http::StatusCode::NOT_FOUND));
+
+        let routes = livereload
+            .or(redirect_to_index)
+            .or(book_route)
+            .or(fallback_route);
+        warp::serve(routes).run(address).await;
+    } else {
+        // The fallback route for 404 errors
+        let fallback_route = warp::fs::file(build_dir.join(file_404))
+            .map(|reply| warp::reply::with_status(reply, warp::http::StatusCode::NOT_FOUND));
+
+        let routes = livereload.or(book_route).or(fallback_route);
+        warp::serve(routes).run(address).await;
+    };
 }

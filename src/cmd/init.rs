@@ -49,13 +49,17 @@ pub fn execute(args: &ArgMatches) -> Result<()> {
         }
     }
 
-    println!("\nDo you want a .gitignore to be created? (y/n)");
+    if !args.is_present("force") {
+        println!("\nDo you want a .gitignore to be created? (y/n)");
 
-    if confirm() {
-        builder.create_gitignore(true);
+        if confirm() {
+            builder.create_gitignore(true);
+        }
+
+        config.book.title = request_book_title();
+    } else {
+        config.book.title = None
     }
-
-    config.book.title = request_book_title();
 
     if let Some(author) = get_author_name() {
         debug!("Obtained user name from gitconfig: {:?}", author);
@@ -64,7 +68,7 @@ pub fn execute(args: &ArgMatches) -> Result<()> {
     }
 
     builder.build()?;
-    println!("\nAll done, no errors...");
+    println!("\nCreated new book at {}", builder.source_dir().display());
 
     Ok(())
 }
