@@ -218,41 +218,6 @@ impl HtmlHandlebars {
         write_file(destination, "ayu-highlight.css", &theme.ayu_highlight_css)?;
         write_file(destination, "highlight.js", &theme.highlight_js)?;
         write_file(destination, "clipboard.min.js", &theme.clipboard_js)?;
-        write_file(
-            destination,
-            "FontAwesome/css/font-awesome.css",
-            theme::FONT_AWESOME,
-        )?;
-        write_file(
-            destination,
-            "FontAwesome/fonts/fontawesome-webfont.eot",
-            theme::FONT_AWESOME_EOT,
-        )?;
-        write_file(
-            destination,
-            "FontAwesome/fonts/fontawesome-webfont.svg",
-            theme::FONT_AWESOME_SVG,
-        )?;
-        write_file(
-            destination,
-            "FontAwesome/fonts/fontawesome-webfont.ttf",
-            theme::FONT_AWESOME_TTF,
-        )?;
-        write_file(
-            destination,
-            "FontAwesome/fonts/fontawesome-webfont.woff",
-            theme::FONT_AWESOME_WOFF,
-        )?;
-        write_file(
-            destination,
-            "FontAwesome/fonts/fontawesome-webfont.woff2",
-            theme::FONT_AWESOME_WOFF2,
-        )?;
-        write_file(
-            destination,
-            "FontAwesome/fonts/FontAwesome.ttf",
-            theme::FONT_AWESOME_TTF,
-        )?;
         if html_config.copy_fonts {
             write_file(destination, "fonts/fonts.css", theme::fonts::CSS)?;
             for (file_name, contents) in theme::fonts::LICENSES.iter() {
@@ -319,6 +284,7 @@ impl HtmlHandlebars {
         handlebars.register_helper("previous", Box::new(helpers::navigation::previous));
         handlebars.register_helper("next", Box::new(helpers::navigation::next));
         handlebars.register_helper("theme_option", Box::new(helpers::theme::theme_option));
+        handlebars.register_helper("fa", Box::new(helpers::fontawesome::fa_helper));
     }
 
     /// Copy across any additional CSS and JavaScript files which the book

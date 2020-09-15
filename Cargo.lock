@@ -244,6 +244,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2fad85553e09a6f881f739c29f0b00b0f01357c743266d478b68951ce23285f3"
 
 [[package]]
+name = "font-awesome-as-a-crate"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a12cc52b2062ad4cb425d969c77325dd3da70312ed7ed892c7e8143384da58aa"
+
+[[package]]
 name = "fsevent"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -731,6 +737,7 @@ dependencies = [
  "clap",
  "elasticlunr-rs",
  "env_logger",
+ "font-awesome-as-a-crate",
  "futures-util",
  "gitignore",
  "handlebars",

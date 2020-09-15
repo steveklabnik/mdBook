@@ -33,6 +33,7 @@ serde_json = "1.0"
 shlex = "1"
 tempfile = "3.0"
 toml = "0.5.1"
+font-awesome-as-a-crate = "0.1.2"
 
 # Watch feature
 notify = { version = "4.0", optional = true }
