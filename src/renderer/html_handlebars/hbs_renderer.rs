@@ -178,6 +178,7 @@ impl HtmlHandlebars {
         let rendered = build_header_links(&rendered);
         let rendered = fix_code_blocks(&rendered);
         let rendered = add_playground_pre(&rendered, playground_config, edition);
+        let rendered = convert_fontawesome(&rendered);
 
         rendered
     }
@@ -737,6 +738,54 @@ fn insert_link_into_header(
         id = id,
         text = content
     )
+}
+
+// Convert fontawesome `<i>` tags to inline SVG
+fn convert_fontawesome(html: &str) -> String {
+    use font_awesome_as_a_crate as fa;
+
+    let regex = Regex::new(r##"<i([^>]+)class="([^"]+)"([^>]*)></i>"##).unwrap();
+    regex
+        .replace_all(html, |caps: &Captures<'_>| {
+            let text = &caps[0];
+            let before = &caps[1];
+            let classes = &caps[2];
+            let after = &caps[3];
+
+            let mut icon = String::new();
+            let mut type_ = fa::Type::Regular;
+            let mut other_classes = String::new();
+
+            for class in classes.split(" ") {
+                if class.starts_with("fa-") {
+                    icon = class[3..].to_owned();
+                } else if class == "fa" {
+                    type_ = fa::Type::Regular;
+                } else if class == "fas" {
+                    type_ = fa::Type::Solid;
+                } else if class == "fab" {
+                    type_ = fa::Type::Brands;
+                } else {
+                    other_classes += " ";
+                    other_classes += class;
+                }
+            }
+
+            if icon == "" {
+                text.to_owned()
+            } else if let Ok(svg) = fa::svg(type_, &icon) {
+                format!(
+                    r#"<span{before}class="fa-svg{other_classes}"{after}>{svg}</span>"#,
+                    before = before,
+                    other_classes = other_classes,
+                    after = after,
+                    svg = svg
+                )
+            } else {
+                text.to_owned()
+            }
+        })
+        .into_owned()
 }
 
 // The rust book uses annotations for rustdoc to test code snippets,
