@@ -2,8 +2,9 @@ use crate::book::{Book, BookItem};
 use crate::config::{Config, HtmlConfig, Playground, RustEdition};
 use crate::errors::*;
 use crate::renderer::html_handlebars::helpers;
+use crate::renderer::html_handlebars::StaticFiles;
 use crate::renderer::{RenderContext, Renderer};
-use crate::theme::{self, playground_editor, Theme};
+use crate::theme::{self, Theme};
 use crate::utils;
 
 use std::borrow::Cow;
@@ -173,115 +174,6 @@ impl HtmlHandlebars {
         rendered
     }
 
-    fn copy_static_files(
-        &self,
-        destination: &Path,
-        theme: &Theme,
-        html_config: &HtmlConfig,
-    ) -> Result<()> {
-        use crate::utils::fs::write_file;
-
-        write_file(
-            destination,
-            ".nojekyll",
-            b"This file makes sure that Github Pages doesn't process mdBook's output.\n",
-        )?;
-
-        if let Some(cname) = &html_config.cname {
-            write_file(destination, "CNAME", format!("{}\n", cname).as_bytes())?;
-        }
-
-        write_file(destination, "book.js", &theme.js)?;
-        write_file(destination, "css/general.css", &theme.general_css)?;
-        write_file(destination, "css/chrome.css", &theme.chrome_css)?;
-        if html_config.print.enable {
-            write_file(destination, "css/print.css", &theme.print_css)?;
-        }
-        write_file(destination, "css/variables.css", &theme.variables_css)?;
-        if let Some(contents) = &theme.favicon_png {
-            write_file(destination, "favicon.png", &contents)?;
-        }
-        if let Some(contents) = &theme.favicon_svg {
-            write_file(destination, "favicon.svg", &contents)?;
-        }
-        write_file(destination, "highlight.css", &theme.highlight_css)?;
-        write_file(destination, "tomorrow-night.css", &theme.tomorrow_night_css)?;
-        write_file(destination, "ayu-highlight.css", &theme.ayu_highlight_css)?;
-        write_file(destination, "highlight.js", &theme.highlight_js)?;
-        write_file(destination, "clipboard.min.js", &theme.clipboard_js)?;
-        write_file(
-            destination,
-            "FontAwesome/css/font-awesome.css",
-            theme::FONT_AWESOME,
-        )?;
-        write_file(
-            destination,
-            "FontAwesome/fonts/fontawesome-webfont.eot",
-            theme::FONT_AWESOME_EOT,
-        )?;
-        write_file(
-            destination,
-            "FontAwesome/fonts/fontawesome-webfont.svg",
-            theme::FONT_AWESOME_SVG,
-        )?;
-        write_file(
-            destination,
-            "FontAwesome/fonts/fontawesome-webfont.ttf",
-            theme::FONT_AWESOME_TTF,
-        )?;
-        write_file(
-            destination,
-            "FontAwesome/fonts/fontawesome-webfont.woff",
-            theme::FONT_AWESOME_WOFF,
-        )?;
-        write_file(
-            destination,
-            "FontAwesome/fonts/fontawesome-webfont.woff2",
-            theme::FONT_AWESOME_WOFF2,
-        )?;
-        write_file(
-            destination,
-            "FontAwesome/fonts/FontAwesome.ttf",
-            theme::FONT_AWESOME_TTF,
-        )?;
-        if html_config.copy_fonts {
-            write_file(destination, "fonts/fonts.css", theme::fonts::CSS)?;
-            for (file_name, contents) in theme::fonts::LICENSES.iter() {
-                write_file(destination, file_name, contents)?;
-            }
-            for (file_name, contents) in theme::fonts::OPEN_SANS.iter() {
-                write_file(destination, file_name, contents)?;
-            }
-            write_file(
-                destination,
-                theme::fonts::SOURCE_CODE_PRO.0,
-                theme::fonts::SOURCE_CODE_PRO.1,
-            )?;
-        }
-
-        let playground_config = &html_config.playground;
-
-        // Ace is a very large dependency, so only load it when requested
-        if playground_config.editable && playground_config.copy_js {
-            // Load the editor
-            write_file(destination, "editor.js", playground_editor::JS)?;
-            write_file(destination, "ace.js", playground_editor::ACE_JS)?;
-            write_file(destination, "mode-rust.js", playground_editor::MODE_RUST_JS)?;
-            write_file(
-                destination,
-                "theme-dawn.js",
-                playground_editor::THEME_DAWN_JS,
-            )?;
-            write_file(
-                destination,
-                "theme-tomorrow_night.js",
-                playground_editor::THEME_TOMORROW_NIGHT_JS,
-            )?;
-        }
-
-        Ok(())
-    }
-
     /// Update the context with data for this file
     fn configure_print_version(
         &self,
@@ -310,43 +202,6 @@ impl HtmlHandlebars {
         handlebars.register_helper("previous", Box::new(helpers::navigation::previous));
         handlebars.register_helper("next", Box::new(helpers::navigation::next));
         handlebars.register_helper("theme_option", Box::new(helpers::theme::theme_option));
-    }
-
-    /// Copy across any additional CSS and JavaScript files which the book
-    /// has been configured to use.
-    fn copy_additional_css_and_js(
-        &self,
-        html: &HtmlConfig,
-        root: &Path,
-        destination: &Path,
-    ) -> Result<()> {
-        let custom_files = html.additional_css.iter().chain(html.additional_js.iter());
-
-        debug!("Copying additional CSS and JS");
-
-        for custom_file in custom_files {
-            let input_location = root.join(custom_file);
-            let output_location = destination.join(custom_file);
-            if let Some(parent) = output_location.parent() {
-                fs::create_dir_all(parent)
-                    .with_context(|| format!("Unable to create {}", parent.display()))?;
-            }
-            debug!(
-                "Copying {} -> {}",
-                input_location.display(),
-                output_location.display()
-            );
-
-            fs::copy(&input_location, &output_location).with_context(|| {
-                format!(
-                    "Unable to copy {} to {}",
-                    input_location.display(),
-                    output_location.display()
-                )
-            })?;
-        }
-
-        Ok(())
     }
 
     fn emit_redirects(
@@ -492,6 +347,39 @@ impl Renderer for HtmlHandlebars {
         fs::create_dir_all(&destination)
             .with_context(|| "Unexpected error when constructing destination path")?;
 
+        let mut static_files = StaticFiles::new(&theme, &html_config, &ctx.root)?;
+
+        // Render search index
+        #[cfg(feature = "search")]
+        {
+            let default = crate::config::Search::default();
+            let search = html_config.search.as_ref().unwrap_or(&default);
+            if search.enable {
+                super::search::create_files(&search, &mut static_files, &book)?;
+            }
+        }
+
+        if html_config.hash_files {
+            static_files.hash_files()?;
+        }
+
+        debug!("Copy static files");
+        let resource_helper = static_files
+            .write_files(&destination)
+            .with_context(|| "Unable to copy across static files")?;
+
+        handlebars.register_helper("resource", Box::new(resource_helper));
+
+        utils::fs::write_file(
+            &destination,
+            ".nojekyll",
+            b"This file makes sure that Github Pages doesn't process mdBook's output.\n",
+        )?;
+
+        if let Some(cname) = &html_config.cname {
+            utils::fs::write_file(&destination, "CNAME", format!("{}\n", cname).as_bytes())?;
+        }
+
         let mut is_index = true;
         for item in book.iter() {
             let ctx = RenderItemContext {
@@ -527,21 +415,6 @@ impl Renderer for HtmlHandlebars {
 
             utils::fs::write_file(&destination, "print.html", rendered.as_bytes())?;
             debug!("Creating print.html ✓");
-        }
-
-        debug!("Copy static files");
-        self.copy_static_files(&destination, &theme, &html_config)
-            .with_context(|| "Unable to copy across static files")?;
-        self.copy_additional_css_and_js(&html_config, &ctx.root, &destination)
-            .with_context(|| "Unable to copy across additional CSS and JS")?;
-
-        // Render search index
-        #[cfg(feature = "search")]
-        {
-            let search = html_config.search.unwrap_or_default();
-            if search.enable {
-                super::search::create_files(&search, &destination, &book)?;
-            }
         }
 
         self.emit_redirects(&ctx.destination, &handlebars, &html_config.redirect)

@@ -10,6 +10,7 @@ edition = "2018"
 [output.html]
 mathjax-support = true
 site-url = "/mdBook/"
+hash-files = true
 
 [output.html.playground]
 editable = true

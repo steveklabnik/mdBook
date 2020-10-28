@@ -21,32 +21,32 @@
         <meta name="theme-color" content="#ffffff" />
 
         {{#if favicon_svg}}
-        <link rel="icon" href="{{ path_to_root }}favicon.svg">
+        <link rel="icon" href="{{ resource "favicon.svg" }}">
         {{/if}}
         {{#if favicon_png}}
-        <link rel="shortcut icon" href="{{ path_to_root }}favicon.png">
+        <link rel="shortcut icon" href="{{ resource "favicon.png" }}">
         {{/if}}
-        <link rel="stylesheet" href="{{ path_to_root }}css/variables.css">
-        <link rel="stylesheet" href="{{ path_to_root }}css/general.css">
-        <link rel="stylesheet" href="{{ path_to_root }}css/chrome.css">
+        <link rel="stylesheet" href="{{ resource "css/variables.css" }}">
+        <link rel="stylesheet" href="{{ resource "css/general.css" }}">
+        <link rel="stylesheet" href="{{ resource "css/chrome.css" }}">
         {{#if print_enable}}
-        <link rel="stylesheet" href="{{ path_to_root }}css/print.css" media="print">
+        <link rel="stylesheet" href="{{ resource "css/print.css" }}" media="print">
         {{/if}}
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="{{ path_to_root }}FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="{{ resource "FontAwesome/css/font-awesome.css" }}">
         {{#if copy_fonts}}
-        <link rel="stylesheet" href="{{ path_to_root }}fonts/fonts.css">
+        <link rel="stylesheet" href="{{ resource "fonts/fonts.css" }}">
         {{/if}}
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="{{ path_to_root }}highlight.css">
-        <link rel="stylesheet" href="{{ path_to_root }}tomorrow-night.css">
-        <link rel="stylesheet" href="{{ path_to_root }}ayu-highlight.css">
+        <link rel="stylesheet" id="highlight-css" href="{{ resource "highlight.css" }}">
+        <link rel="stylesheet" id="tomorrow-night-css" href="{{ resource "tomorrow-night.css" }}">
+        <link rel="stylesheet" id="ayu-highlight-css" href="{{ resource "ayu-highlight.css" }}">
 
         <!-- Custom theme stylesheets -->
         {{#each additional_css}}
-        <link rel="stylesheet" href="{{ ../path_to_root }}{{ this }}">
+        <link rel="stylesheet" href="{{ resource this }}">
         {{/each}}
 
         {{#if mathjax_support}}
@@ -262,26 +262,26 @@
         {{/if}}
 
         {{#if playground_js}}
-        <script src="{{ path_to_root }}ace.js" type="text/javascript" charset="utf-8"></script>
-        <script src="{{ path_to_root }}editor.js" type="text/javascript" charset="utf-8"></script>
-        <script src="{{ path_to_root }}mode-rust.js" type="text/javascript" charset="utf-8"></script>
-        <script src="{{ path_to_root }}theme-dawn.js" type="text/javascript" charset="utf-8"></script>
-        <script src="{{ path_to_root }}theme-tomorrow_night.js" type="text/javascript" charset="utf-8"></script>
+        <script src="{{ resource "ace.js" }}" type="text/javascript" charset="utf-8"></script>
+        <script src="{{ resource "mode-rust.js" }}" type="text/javascript" charset="utf-8"></script>
+        <script src="{{ resource "theme-dawn.js" }}" type="text/javascript" charset="utf-8"></script>
+        <script src="{{ resource "theme-tomorrow_night.js" }}" type="text/javascript" charset="utf-8"></script>
+        <script src="{{ resource "editor.js" }}" type="text/javascript" charset="utf-8"></script>
         {{/if}}
 
         {{#if search_js}}
-        <script src="{{ path_to_root }}elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="{{ path_to_root }}mark.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="{{ path_to_root }}searcher.js" type="text/javascript" charset="utf-8"></script>
+        <script src="{{ resource "elasticlunr.min.js" }}" type="text/javascript" charset="utf-8"></script>
+        <script src="{{ resource "mark.min.js" }}" type="text/javascript" charset="utf-8"></script>
+        <script src="{{ resource "searcher.js" }}" type="text/javascript" charset="utf-8"></script>
         {{/if}}
 
-        <script src="{{ path_to_root }}clipboard.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="{{ path_to_root }}highlight.js" type="text/javascript" charset="utf-8"></script>
-        <script src="{{ path_to_root }}book.js" type="text/javascript" charset="utf-8"></script>
+        <script src="{{ resource "clipboard.min.js" }}" type="text/javascript" charset="utf-8"></script>
+        <script src="{{ resource "highlight.js" }}" type="text/javascript" charset="utf-8"></script>
+        <script src="{{ resource "book.js" }}" type="text/javascript" charset="utf-8"></script>
 
         <!-- Custom JS scripts -->
         {{#each additional_js}}
-        <script type="text/javascript" src="{{ ../path_to_root }}{{this}}"></script>
+        <script type="text/javascript" src="{{ resource this }}"></script>
         {{/each}}
 
         {{#if is_print}}

@@ -528,6 +528,9 @@ pub struct HtmlConfig {
     /// The mapping from old pages to new pages/URLs to use when generating
     /// redirects.
     pub redirect: HashMap<String, String>,
+    /// If this option is turned on, "cache bust" static files by adding
+    /// hashes to their file names.
+    pub hash_files: bool,
 }
 
 impl Default for HtmlConfig {
@@ -554,6 +557,7 @@ impl Default for HtmlConfig {
             cname: None,
             livereload_url: None,
             redirect: HashMap::new(),
+            hash_files: false,
         }
     }
 }
