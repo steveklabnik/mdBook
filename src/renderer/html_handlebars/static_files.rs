@@ -8,6 +8,14 @@ use std::collections::HashMap;
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 
+/// Map static files to their final names and contents.
+///
+/// It performs [fingerprinting], if you call the `hash_files` method.
+/// If hash-files is turned off, then the files will not be renamed.
+/// It also writes files to their final destination, when `write_files` is called,
+/// and interprets the `{{ resource }}` directives to allow assets to name each other.
+///
+/// [fingerprinting]: https://guides.rubyonrails.org/asset_pipeline.html#what-is-fingerprinting-and-why-should-i-care-questionmark
 pub struct StaticFiles {
     static_files: Vec<StaticFile>,
     hash_map: HashMap<String, String>,

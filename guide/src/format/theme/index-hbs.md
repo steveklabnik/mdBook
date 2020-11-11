@@ -95,6 +95,16 @@ They are used like this
 The inner html will only be rendered if the previous / next chapter exists.
 Of course the inner html can be changed to your liking.
 
+### 3. resource
+
+The path to a static file.
+It implicitly includes `path_to_root`,
+and accounts for files that are renamed with a hash in their filename.
+
+```handlebars
+<link rel="stylesheet" href="{{ resource "css/chrome.css" }}">
+```
+
 ------
 
 *If you would like other properties or helpers exposed, please [create a new
