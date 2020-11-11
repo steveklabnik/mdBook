@@ -213,7 +213,8 @@ impl StaticFiles {
                                 .as_bytes();
                             let name =
                                 std::str::from_utf8(name).expect("resource name with invalid utf8");
-                            let resource_filename = hash_map.get(name).map(|s| &s[..]).unwrap_or(&name);
+                            let resource_filename =
+                                hash_map.get(name).map(|s| &s[..]).unwrap_or(&name);
                             let path_to_root = utils::fs::path_to_root(&filename);
                             format!("{}{}", path_to_root, resource_filename)
                                 .as_bytes()
@@ -250,7 +251,8 @@ impl StaticFiles {
                                 .as_bytes();
                             let name =
                                 std::str::from_utf8(name).expect("resource name with invalid utf8");
-                            let resource_filename = hash_map.get(name).map(|s| &s[..]).unwrap_or(&name);
+                            let resource_filename =
+                                hash_map.get(name).map(|s| &s[..]).unwrap_or(&name);
                             let path_to_root = utils::fs::path_to_root(&filename);
                             format!("{}{}", path_to_root, resource_filename)
                                 .as_bytes()
@@ -277,8 +279,8 @@ impl StaticFiles {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::theme::Theme;
     use crate::config::HtmlConfig;
+    use crate::theme::Theme;
     use crate::utils::fs::write_file;
     use std::io::Read;
     #[test]
@@ -305,19 +307,34 @@ mod tests {
         let test_case = PathBuf::from("target/static-files-test-case");
         let mut html_config = HtmlConfig::default();
         html_config.additional_js.push(reference_js.clone());
-        write_file(&Path::new("."), &reference_js, br#"{{ resource "book.js" }}"#).unwrap();
+        write_file(
+            &Path::new("."),
+            &reference_js,
+            br#"{{ resource "book.js" }}"#,
+        )
+        .unwrap();
         let mut static_files = StaticFiles::new(&theme, &html_config, &Path::new(".")).unwrap();
         static_files.hash_files().unwrap();
         static_files.write_files(&test_case).unwrap();
         // custom JS winds up referencing book.js
-        let mut reference_js_dest = File::open("target/static-files-test-case/target/static-files-test-case-reference-635c9cdc.js").unwrap();
+        let mut reference_js_dest = File::open(
+            "target/static-files-test-case/target/static-files-test-case-reference-635c9cdc.js",
+        )
+        .unwrap();
         let mut reference_js_content = Vec::new();
-        reference_js_dest.read_to_end(&mut reference_js_content).unwrap();
+        reference_js_dest
+            .read_to_end(&mut reference_js_content)
+            .unwrap();
+        std::mem::drop(reference_js_dest);
         assert_eq!(br#"../book-e3b0c442.js"#, &reference_js_content[..]);
         // book.js winds up empty
-        let mut reference_js_dest = File::open("target/static-files-test-case/book-e3b0c442.js").unwrap();
+        let mut reference_js_dest =
+            File::open("target/static-files-test-case/book-e3b0c442.js").unwrap();
         let mut reference_js_content = Vec::new();
-        reference_js_dest.read_to_end(&mut reference_js_content).unwrap();
+        reference_js_dest
+            .read_to_end(&mut reference_js_content)
+            .unwrap();
+        std::mem::drop(reference_js_dest);
         assert_eq!(br#""#, &reference_js_content[..]);
         std::fs::remove_dir_all(&test_case).unwrap();
         std::fs::remove_file(&reference_js).unwrap();
