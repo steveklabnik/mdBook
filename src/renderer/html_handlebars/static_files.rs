@@ -4,6 +4,7 @@ use crate::renderer::html_handlebars::helpers::resources::ResourceHelper;
 use crate::theme::{self, playground_editor, Theme};
 use crate::utils;
 
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
@@ -195,30 +196,37 @@ impl StaticFiles {
     pub fn write_files(self, destination: &Path) -> Result<ResourceHelper> {
         use crate::utils::fs::write_file;
         use regex::bytes::{Captures, Regex};
+        use std::io::Read;
+        // The `{{ resource "name" }}` directive in static resources look like
+        // handlebars syntax, even if they technically aren't.
         let resource = Regex::new(r#"\{\{ resource "([^"]+)" \}\}"#).unwrap();
         for static_file in self.static_files {
             match static_file {
                 StaticFile::Builtin { filename, data } => {
                     debug!("Writing builtin -> {}", filename);
                     let hash_map = &self.hash_map;
-                    let data = resource.replace_all(&data, |captures: &Captures<'_>| {
-                        let name = captures
-                            .get(1)
-                            .expect("capture 1 in resource regex")
-                            .as_bytes();
-                        let name =
-                            std::str::from_utf8(name).expect("resource name with invalid utf8");
-                        let resource_filename = hash_map.get(name).map(|s| &s[..]).unwrap_or(&name);
-                        let path_to_root = utils::fs::path_to_root(&filename);
-                        format!("{}{}", path_to_root, resource_filename)
-                            .as_bytes()
-                            .to_owned()
-                    });
+                    let data = if filename.ends_with(".css") || filename.ends_with(".js") {
+                        resource.replace_all(&data, |captures: &Captures<'_>| {
+                            let name = captures
+                                .get(1)
+                                .expect("capture 1 in resource regex")
+                                .as_bytes();
+                            let name =
+                                std::str::from_utf8(name).expect("resource name with invalid utf8");
+                            let resource_filename = hash_map.get(name).map(|s| &s[..]).unwrap_or(&name);
+                            let path_to_root = utils::fs::path_to_root(&filename);
+                            format!("{}{}", path_to_root, resource_filename)
+                                .as_bytes()
+                                .to_owned()
+                        })
+                    } else {
+                        Cow::Borrowed(&data[..])
+                    };
                     write_file(destination, &filename, &data)?;
                 }
                 StaticFile::Additional {
-                    input_location,
-                    filename,
+                    ref input_location,
+                    ref filename,
                 } => {
                     let output_location = destination.join(filename);
                     debug!(
@@ -230,13 +238,34 @@ impl StaticFiles {
                         fs::create_dir_all(parent)
                             .with_context(|| format!("Unable to create {}", parent.display()))?;
                     }
-                    fs::copy(&input_location, &output_location).with_context(|| {
-                        format!(
-                            "Unable to copy {} to {}",
-                            input_location.display(),
-                            output_location.display()
-                        )
-                    })?;
+                    if filename.ends_with(".css") || filename.ends_with(".js") {
+                        let hash_map = &self.hash_map;
+                        let mut file = File::open(input_location)?;
+                        let mut data = Vec::new();
+                        file.read_to_end(&mut data)?;
+                        resource.replace_all(&data, |captures: &Captures<'_>| {
+                            let name = captures
+                                .get(1)
+                                .expect("capture 1 in resource regex")
+                                .as_bytes();
+                            let name =
+                                std::str::from_utf8(name).expect("resource name with invalid utf8");
+                            let resource_filename = hash_map.get(name).map(|s| &s[..]).unwrap_or(&name);
+                            let path_to_root = utils::fs::path_to_root(&filename);
+                            format!("{}{}", path_to_root, resource_filename)
+                                .as_bytes()
+                                .to_owned()
+                        });
+                        write_file(destination, &filename, &data)?;
+                    } else {
+                        fs::copy(&input_location, &output_location).with_context(|| {
+                            format!(
+                                "Unable to copy {} to {}",
+                                input_location.display(),
+                                output_location.display()
+                            )
+                        })?;
+                    }
                 }
             }
         }
