@@ -217,6 +217,11 @@ The following configuration options are available:
   This string will be written to a file named CNAME in the root of your site, as
   required by GitHub Pages (see [*Managing a custom domain for your GitHub Pages
   site*][custom domain]).
+- **hash-files:** Include a cryptographic "fingerprint" of the files' contents in CSS, JavaScript, and image asset filenames,
+  so that if the contents of the file are changed, the name of the file will also change.
+  For example, `css/chrome.css` may become `css/chrome-9b8f428e.css`.
+  HTML files are not renamed.
+  Static CSS and JS files can reference each other using `{{ resource "filename" }}` directives.
 
 [custom domain]: https://docs.github.com/en/github/working-with-github-pages/managing-a-custom-domain-for-your-github-pages-site
 

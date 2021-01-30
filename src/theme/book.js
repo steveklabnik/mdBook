@@ -277,9 +277,9 @@ function playground_text(playground) {
     var themePopup = document.getElementById('theme-list');
     var themeColorMetaTag = document.querySelector('meta[name="theme-color"]');
     var stylesheets = {
-        ayuHighlight: document.querySelector("[href$='ayu-highlight.css']"),
-        tomorrowNight: document.querySelector("[href$='tomorrow-night.css']"),
-        highlight: document.querySelector("[href$='highlight.css']"),
+        ayuHighlight: document.querySelector("#ayu-highlight-css"),
+        tomorrowNight: document.querySelector("#tomorrow-night-css"),
+        highlight: document.querySelector("#highlight-css"),
     };
 
     function showThemes() {
