@@ -77,6 +77,9 @@ h6:target::before {
 .js:not(.sidebar-resizing) .page-wrapper {
     transition: margin-left 0.3s ease, transform 0.3s ease; /* Animation: slide away */
 }
+[dir=rtl] .js:not(.sidebar-resizing) .page-wrapper {
+    transition: margin-right 0.3s ease, transform 0.3s ease; /* Animation: slide away */
+}
 
 .content {
     overflow-y: auto;
