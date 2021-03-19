@@ -217,38 +217,93 @@ impl HtmlHandlebars {
         write_file(destination, "clipboard.min.js", &theme.clipboard_js)?;
         write_file(
             destination,
-            "FontAwesome/css/font-awesome.css",
-            theme::FONT_AWESOME,
+            "FontAwesome/css/fontawesome.css",
+            theme::FONT_AWESOME_REGULAR,
         )?;
         write_file(
             destination,
-            "FontAwesome/fonts/fontawesome-webfont.eot",
-            theme::FONT_AWESOME_EOT,
+            "FontAwesome/css/brands.css",
+            theme::FONT_AWESOME_BRANDS,
         )?;
         write_file(
             destination,
-            "FontAwesome/fonts/fontawesome-webfont.svg",
-            theme::FONT_AWESOME_SVG,
+            "FontAwesome/css/solid.css",
+            theme::FONT_AWESOME_SOLID,
         )?;
         write_file(
             destination,
-            "FontAwesome/fonts/fontawesome-webfont.ttf",
-            theme::FONT_AWESOME_TTF,
+            "FontAwesome/webfonts/fa-regular-400.eot",
+            theme::FONT_AWESOME_REGULAR_EOT,
         )?;
         write_file(
             destination,
-            "FontAwesome/fonts/fontawesome-webfont.woff",
-            theme::FONT_AWESOME_WOFF,
+            "FontAwesome/webfonts/fa-regular-400.svg",
+            theme::FONT_AWESOME_REGULAR_SVG,
         )?;
         write_file(
             destination,
-            "FontAwesome/fonts/fontawesome-webfont.woff2",
-            theme::FONT_AWESOME_WOFF2,
+            "FontAwesome/webfonts/fa-regular-400.ttf",
+            theme::FONT_AWESOME_REGULAR_TTF,
         )?;
         write_file(
             destination,
-            "FontAwesome/fonts/FontAwesome.ttf",
-            theme::FONT_AWESOME_TTF,
+            "FontAwesome/webfonts/fa-regular-400.woff",
+            theme::FONT_AWESOME_REGULAR_WOFF,
+        )?;
+        write_file(
+            destination,
+            "FontAwesome/webfonts/fa-regular-400.woff2",
+            theme::FONT_AWESOME_REGULAR_WOFF2,
+        )?;
+        write_file(
+            destination,
+            "FontAwesome/webfonts/fa-brands-400.eot",
+            theme::FONT_AWESOME_BRANDS_EOT,
+        )?;
+        write_file(
+            destination,
+            "FontAwesome/webfonts/fa-brands-400.svg",
+            theme::FONT_AWESOME_BRANDS_SVG,
+        )?;
+        write_file(
+            destination,
+            "FontAwesome/webfonts/fa-brands-400.ttf",
+            theme::FONT_AWESOME_BRANDS_TTF,
+        )?;
+        write_file(
+            destination,
+            "FontAwesome/webfonts/fa-brands-400.woff",
+            theme::FONT_AWESOME_BRANDS_WOFF,
+        )?;
+        write_file(
+            destination,
+            "FontAwesome/webfonts/fa-brands-400.woff2",
+            theme::FONT_AWESOME_BRANDS_WOFF2,
+        )?;
+        write_file(
+            destination,
+            "FontAwesome/webfonts/fa-solid-900.eot",
+            theme::FONT_AWESOME_SOLID_EOT,
+        )?;
+        write_file(
+            destination,
+            "FontAwesome/webfonts/fa-solid-900.svg",
+            theme::FONT_AWESOME_SOLID_SVG,
+        )?;
+        write_file(
+            destination,
+            "FontAwesome/webfonts/fa-solid-900.ttf",
+            theme::FONT_AWESOME_SOLID_TTF,
+        )?;
+        write_file(
+            destination,
+            "FontAwesome/webfonts/fa-solid-900.woff",
+            theme::FONT_AWESOME_SOLID_WOFF,
+        )?;
+        write_file(
+            destination,
+            "FontAwesome/webfonts/fa-solid-900.woff2",
+            theme::FONT_AWESOME_SOLID_WOFF2,
         )?;
         if html_config.copy_fonts {
             write_file(destination, "fonts/fonts.css", theme::fonts::CSS)?;
