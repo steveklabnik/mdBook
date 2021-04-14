@@ -205,9 +205,9 @@ contents (sidebar) by including a `\{{#title ...}}` near the top of the page.
 ## Font-Awesome icons
 
 mdBook includes a copy of [Font Awesome Free's](https://fontawesome.com)
-MIT-licensed SVG files. It emulates the `<i class="fa">` syntax, but converts
-the results to inline SVG. Only the regular, solid, and brands icons are
-included; paid features like the light icons are not.
+MIT-licensed SVG files. It emulates the `<i>` syntax, but converts the results
+to inline SVG. Only the regular, solid, and brands icons are included; paid
+features like the light icons are not.
 
 For example, given this HTML syntax:
 

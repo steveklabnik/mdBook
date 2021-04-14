@@ -26,6 +26,10 @@ pub fn fa_helper(
 
     let name = if name.starts_with("fa-") {
         &name[3..]
+    } else if name.starts_with("fab-") {
+        &name[4..]
+    } else if name.starts_with("fas-") {
+        &name[4..]
     } else {
         &name[..]
     };

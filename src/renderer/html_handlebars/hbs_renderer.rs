@@ -651,9 +651,19 @@ fn make_data(
 
     let git_repository_icon = match html_config.git_repository_icon {
         Some(ref git_repository_icon) => git_repository_icon,
-        None => "fa-github",
+        None => "fab-github",
+    };
+    let git_repository_icon_class = match git_repository_icon.split('-').next() {
+        Some("fa") => "regular",
+        Some("fas") => "solid",
+        Some("fab") => "brands",
+        _ => "regular",
     };
     data.insert("git_repository_icon".to_owned(), json!(git_repository_icon));
+    data.insert(
+        "git_repository_icon_class".to_owned(),
+        json!(git_repository_icon_class),
+    );
 
     let mut chapters = vec![];
 

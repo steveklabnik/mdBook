@@ -87,7 +87,7 @@ They are used like this
 ```handlebars
 {{#previous}}
     <a href="{{link}}" class="nav-chapters previous">
-        <i class="fa fa-angle-left"></i>
+        {{fa "solid" "angle-left"}}
     </a>
 {{/previous}}
 ```
