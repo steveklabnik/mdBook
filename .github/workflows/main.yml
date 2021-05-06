@@ -31,7 +31,7 @@ jobs:
             rust: stable
           - build: msrv
             os: ubuntu-latest
-            rust: 1.39.0
+            rust: 1.43.0
     steps:
     - uses: actions/checkout@master
     - name: Install Rust

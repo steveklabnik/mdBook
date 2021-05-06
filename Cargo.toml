@@ -16,16 +16,16 @@ repository = "https://github.com/rust-lang/mdBook"
 description = "Creates a book from markdown files"
 
 [dependencies]
-anyhow = "1.0.28"
+anyhow = "1.0.35"
 chrono = "0.4"
 clap = "2.24"
-env_logger = "0.7.1"
+env_logger = "0.8.2"
 handlebars = "3.0"
 lazy_static = "1.0"
 log = "0.4"
 memchr = "2.0"
 open = "1.1"
-pulldown-cmark = "0.7.0"
+pulldown-cmark = "0.8.0"
 regex = "1.0.0"
 serde = "1.0"
 serde_derive = "1.0"
@@ -40,7 +40,7 @@ gitignore = { version = "1.0", optional = true }
 
 # Serve feature
 futures-util = { version = "0.3.4", optional = true }
-tokio = { version = "0.2.18", features = ["macros"], optional = true }
+tokio = { version = "0.3.6", features = ["macros", "rt-multi-thread", "sync"], optional = true }
 warp = { version = "0.2.2", default-features = false, features = ["websocket"], optional = true }
 
 # Search feature
