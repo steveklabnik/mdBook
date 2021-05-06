@@ -1,0 +1,476 @@
+%YAML 1.2
+---
+# http://www.sublimetext.com/docs/3/syntax.html
+name: Handlebars
+file_extensions:
+  - handlebars
+  - handlebars.html
+  - hbr
+  - hbrs
+  - hbs
+  - hdbs
+  - hjs
+  - mu
+  - mustache
+  - rac
+  - stache
+  - template
+  - tmpl
+scope: text.html.handlebars
+contexts:
+  main:
+    - include: yfm
+    - include: extends
+    - include: block_comments
+    - include: comments
+    - include: block_helper
+    - include: end_block
+    - include: else_token
+    - include: partial_and_var
+    - include: inline_script
+    - include: html_tags
+    - include: scope:text.html.basic
+  block_comments:
+    - match: '\{\{!--'
+      push:
+        - meta_scope: comment.block.handlebars
+        - match: '--\}\}'
+          pop: true
+        - match: '@\w*'
+          scope: keyword.annotation.handlebars
+        - include: comments
+    - match: <!--
+      captures:
+        0: punctuation.definition.comment.html
+      push:
+        - meta_scope: comment.block.html
+        - match: '-{2,3}\s*>'
+          captures:
+            0: punctuation.definition.comment.html
+          pop: true
+        - match: "--"
+          scope: invalid.illegal.bad-comments-or-CDATA.html
+  block_helper:
+    - match: '(\{\{)(~?\#)([-a-zA-Z0-9_\./>]+)\s?(@?[-a-zA-Z0-9_\./]+)*\s?(@?[-a-zA-Z0-9_\./]+)*\s?(@?[-a-zA-Z0-9_\./]+)*'
+      captures:
+        1: support.constant.handlebars
+        2: support.constant.handlebars keyword.control
+        3: support.constant.handlebars keyword.control
+        4: variable.parameter.handlebars
+        5: support.constant.handlebars
+        6: variable.parameter.handlebars
+        7: support.constant.handlebars
+      push:
+        - meta_scope: meta.function.block.start.handlebars
+        - match: '(~?\}\})'
+          captures:
+            1: support.constant.handlebars
+          pop: true
+        - include: string
+        - include: handlebars_attribute
+  comments:
+    - match: '\{\{!'
+      push:
+        - meta_scope: comment.block.handlebars
+        - match: '\}\}'
+          pop: true
+        - match: '@\w*'
+          scope: keyword.annotation.handlebars
+        - include: comments
+    - match: <!--
+      captures:
+        0: punctuation.definition.comment.html
+      push:
+        - meta_scope: comment.block.html
+        - match: '-{2,3}\s*>'
+          captures:
+            0: punctuation.definition.comment.html
+          pop: true
+        - match: "--"
+          scope: invalid.illegal.bad-comments-or-CDATA.html
+  else_token:
+    - match: '(\{\{)(~?else)(@?\s(if)\s([-a-zA-Z0-9_\.\(\s\)/]+))?'
+      captures:
+        1: support.constant.handlebars
+        2: support.constant.handlebars keyword.control
+        3: support.constant.handlebars
+        4: variable.parameter.handlebars
+      push:
+        - meta_scope: meta.function.inline.else.handlebars
+        - match: '(~?\}\}\}*)'
+          captures:
+            1: support.constant.handlebars
+          pop: true
+  end_block:
+    - match: '(\{\{)(~?/)([a-zA-Z0-9/_\.-]+)\s*'
+      captures:
+        1: support.constant.handlebars
+        2: support.constant.handlebars keyword.control
+        3: support.constant.handlebars keyword.control
+      push:
+        - meta_scope: meta.function.block.end.handlebars
+        - match: '(~?\}\})'
+          captures:
+            1: support.constant.handlebars
+          pop: true
+  entities:
+    - match: "(&)([a-zA-Z0-9]+|#[0-9]+|#x[0-9a-fA-F]+)(;)"
+      scope: constant.character.entity.html
+      captures:
+        1: punctuation.definition.entity.html
+        3: punctuation.definition.entity.html
+    - match: "&"
+      scope: invalid.illegal.bad-ampersand.html
+  escaped-double-quote:
+    - match: \\"
+      scope: constant.character.escape.js
+  escaped-single-quote:
+    - match: \\'
+      scope: constant.character.escape.js
+  extends:
+    - match: '(\{\{!<)\s([-a-zA-Z0-9_\./]+)'
+      captures:
+        1: support.function.handlebars
+        2: support.class.handlebars
+      push:
+        - meta_scope: meta.preprocessor.handlebars
+        - match: '(\}\})'
+          captures:
+            1: support.function.handlebars
+          pop: true
+  handlebars_attribute:
+    - include: handlebars_attribute_name
+    - include: handlebars_attribute_value
+  handlebars_attribute_name:
+    - match: '\b([-a-zA-Z0-9_\.]+)\b='
+      captures:
+        1: variable.parameter.handlebars
+      push:
+        - meta_scope: entity.other.attribute-name.handlebars
+        - match: (?='|"|)
+          captures:
+            1: variable.parameter.handlebars
+          pop: true
+  handlebars_attribute_value:
+    - match: '([-a-zA-Z0-9_\./]+)\b'
+      captures:
+        1: variable.parameter.handlebars
+      push:
+        - meta_scope: entity.other.attribute-value.handlebars
+        - match: ('|"|)
+          captures:
+            1: variable.parameter.handlebars
+          pop: true
+        - include: string
+  html_tags:
+    - match: '(<)([a-zA-Z0-9:-]+)(?=[^>]*></\2>)'
+      captures:
+        1: punctuation.definition.tag.html
+        2: entity.name.tag.html
+      push:
+        - meta_scope: meta.tag.any.html
+        - match: (>(<)/)(\2)(>)
+          captures:
+            1: punctuation.definition.tag.html
+            2: meta.scope.between-tag-pair.html
+            3: entity.name.tag.html
+            4: punctuation.definition.tag.html
+          pop: true
+        - include: tag-stuff
+    - match: (<\?)(xml)
+      captures:
+        1: punctuation.definition.tag.html
+        2: entity.name.tag.xml.html
+      push:
+        - meta_scope: meta.tag.preprocessor.xml.html
+        - match: (\?>)
+          captures:
+            1: punctuation.definition.tag.html
+            2: entity.name.tag.xml.html
+          pop: true
+        - include: tag_generic_attribute
+        - include: string
+    - match: <!--
+      captures:
+        0: punctuation.definition.comment.html
+      push:
+        - meta_scope: comment.block.html
+        - match: '--\s*>'
+          captures:
+            0: punctuation.definition.comment.html
+          pop: true
+        - match: "--"
+          scope: invalid.illegal.bad-comments-or-CDATA.html
+    - match: <!
+      captures:
+        0: punctuation.definition.tag.html
+      push:
+        - meta_scope: meta.tag.sgml.html
+        - match: ">"
+          captures:
+            0: punctuation.definition.tag.html
+          pop: true
+        - match: (DOCTYPE|doctype)
+          captures:
+            1: entity.name.tag.doctype.html
+          push:
+            - meta_scope: meta.tag.sgml.doctype.html
+            - match: (?=>)
+              captures:
+                1: entity.name.tag.doctype.html
+              pop: true
+            - match: '"[^">]*"'
+              scope: string.quoted.double.doctype.identifiers-and-DTDs.html
+        - match: '\[CDATA\['
+          push:
+            - meta_scope: constant.other.inline-data.html
+            - match: "]](?=>)"
+              pop: true
+        - match: (\s*)(?!--|>)\S(\s*)
+          scope: invalid.illegal.bad-comments-or-CDATA.html
+    - match: '(?:^\s+)?(<)((?i:style))\b(?![^>]*/>)'
+      captures:
+        1: punctuation.definition.tag.html
+        2: entity.name.tag.style.html
+        3: punctuation.definition.tag.html
+      push:
+        - meta_scope: source.css.embedded.html
+        - match: (</)((?i:style))(>)(?:\s*\n)?
+          captures:
+            1: punctuation.definition.tag.html
+            2: entity.name.tag.style.html
+            3: punctuation.definition.tag.html
+          pop: true
+        - include: tag-stuff
+        - match: (>)
+          captures:
+            1: punctuation.definition.tag.html
+          push:
+            - match: (?=</(?i:style))
+              pop: true
+            - include: scope:source.css
+    - match: '(?:^\s+)?(<)((?i:script))\b(?![^>]*/>)'
+      captures:
+        1: punctuation.definition.tag.html
+        2: entity.name.tag.script.html
+      push:
+        - meta_scope: source.js.embedded.html
+        - match: (?<=</(script|SCRIPT))(>)(?:\s*\n)?
+          captures:
+            2: punctuation.definition.tag.html
+          pop: true
+        - include: tag-stuff
+        - match: (?<!</(?:script|SCRIPT))(>)
+          captures:
+            1: punctuation.definition.tag.html
+            2: entity.name.tag.script.html
+          push:
+            - match: (</)((?i:script))
+              captures:
+                1: punctuation.definition.tag.html
+                2: entity.name.tag.script.html
+              pop: true
+            - match: (//).*?((?=</script)|$\n?)
+              scope: comment.line.double-slash.js
+              captures:
+                1: punctuation.definition.comment.js
+            - match: /\*
+              captures:
+                0: punctuation.definition.comment.js
+              push:
+                - meta_scope: comment.block.js
+                - match: \*/|(?=</script)
+                  captures:
+                    0: punctuation.definition.comment.js
+                  pop: true
+            - include: scope:source.js
+    - match: (</?)((?i:body|head|html)\b)
+      captures:
+        1: punctuation.definition.tag.html
+        2: entity.name.tag.structure.any.html
+      push:
+        - meta_scope: meta.tag.structure.any.html
+        - match: (>)
+          captures:
+            1: punctuation.definition.tag.html
+            2: entity.name.tag.structure.any.html
+          pop: true
+        - include: tag-stuff
+    - match: (</?)((?i:address|blockquote|dd|div|header|section|footer|aside|nav|dl|dt|fieldset|form|frame|frameset|h1|h2|h3|h4|h5|h6|iframe|noframes|object|ol|p|ul|applet|center|dir|hr|menu|pre)\b)
+      captures:
+        1: punctuation.definition.tag.html
+        2: entity.name.tag.block.any.html
+      push:
+        - meta_scope: meta.tag.block.any.html
+        - match: (>)
+          captures:
+            1: punctuation.definition.tag.html
+            2: entity.name.tag.block.any.html
+          pop: true
+        - include: tag-stuff
+    - match: (</?)((?i:a|abbr|acronym|area|b|base|basefont|bdo|big|br|button|caption|cite|code|col|colgroup|del|dfn|em|font|head|html|i|img|input|ins|isindex|kbd|label|legend|li|link|map|meta|noscript|optgroup|option|param|q|s|samp|script|select|small|span|strike|strong|style|sub|sup|table|tbody|td|textarea|tfoot|th|thead|title|tr|tt|u|var)\b)
+      captures:
+        1: punctuation.definition.tag.html
+        2: entity.name.tag.inline.any.html
+      push:
+        - meta_scope: meta.tag.inline.any.html
+        - match: "((?: ?/)?>)"
+          captures:
+            1: punctuation.definition.tag.html
+            2: entity.name.tag.inline.any.html
+          pop: true
+        - include: tag-stuff
+    - match: "(</?)([a-zA-Z0-9:-]+)"
+      captures:
+        1: punctuation.definition.tag.html
+        2: entity.name.tag.other.html
+      push:
+        - meta_scope: meta.tag.other.html
+        - match: (>)
+          captures:
+            1: punctuation.definition.tag.html
+            2: entity.name.tag.other.html
+          pop: true
+        - include: tag-stuff
+    - match: "(</?)([a-zA-Z0-9{}:-]+)"
+      captures:
+        1: punctuation.definition.tag.html
+        2: entity.name.tag.tokenised.html
+      push:
+        - meta_scope: meta.tag.tokenised.html
+        - match: (>)
+          captures:
+            1: punctuation.definition.tag.html
+            2: entity.name.tag.tokenised.html
+          pop: true
+        - include: tag-stuff
+    - include: entities
+    - match: <>
+      scope: invalid.illegal.incomplete.html
+    - match: <
+      scope: invalid.illegal.bad-angle-bracket.html
+  inline_script:
+    - match: '(?:^\s+)?(<)((?i:script))\b(?:.*(type)=(["''](?:text/x-handlebars-template|text/x-handlebars|text/template|x-tmpl-handlebars)["'']))(?![^>]*/>)'
+      captures:
+        1: punctuation.definition.tag.html
+        2: entity.name.tag.script.html
+        3: entity.other.attribute-name.html
+        4: string.quoted.double.html
+      push:
+        - meta_scope: source.handlebars.embedded.html
+        - match: (?<=</(script|SCRIPT))(>)(?:\s*\n)?
+          captures:
+            2: punctuation.definition.tag.html
+          pop: true
+        - include: tag-stuff
+        - match: (?<!</(?:script|SCRIPT))(>)
+          captures:
+            1: punctuation.definition.tag.html
+            2: entity.name.tag.script.html
+          push:
+            - match: (</)((?i:script))
+              captures:
+                1: punctuation.definition.tag.html
+                2: entity.name.tag.script.html
+              pop: true
+            - include: block_comments
+            - include: comments
+            - include: block_helper
+            - include: end_block
+            - include: else_token
+            - include: partial_and_var
+            - include: html_tags
+            - include: scope:text.html.basic
+  partial_and_var:
+    - match: '(\{\{~?\{*(>|!<)*)\s*(@?[-a-zA-Z0-9$_\./]+)*'
+      captures:
+        1: support.constant.handlebars
+        3: variable.parameter.handlebars
+      push:
+        - meta_scope: meta.function.inline.other.handlebars
+        - match: '(~?\}\}\}*)'
+          captures:
+            1: support.constant.handlebars
+          pop: true
+        - include: string
+        - include: handlebars_attribute
+  string:
+    - include: string-single-quoted
+    - include: string-double-quoted
+  string-double-quoted:
+    - match: '"'
+      captures:
+        0: punctuation.definition.string.begin.html
+      push:
+        - meta_scope: string.quoted.double.handlebars
+        - match: '"'
+          captures:
+            0: punctuation.definition.string.end.html
+          pop: true
+        - include: escaped-double-quote
+        - include: block_comments
+        - include: comments
+        - include: block_helper
+        - include: else_token
+        - include: end_block
+        - include: partial_and_var
+  string-single-quoted:
+    - match: "'"
+      captures:
+        0: punctuation.definition.string.begin.html
+      push:
+        - meta_scope: string.quoted.single.handlebars
+        - match: "'"
+          captures:
+            0: punctuation.definition.string.end.html
+          pop: true
+        - include: escaped-single-quote
+        - include: block_comments
+        - include: comments
+        - include: block_helper
+        - include: else_token
+        - include: end_block
+        - include: partial_and_var
+  tag-stuff:
+    - include: tag_id_attribute
+    - include: tag_generic_attribute
+    - include: string
+    - include: block_comments
+    - include: comments
+    - include: block_helper
+    - include: end_block
+    - include: else_token
+    - include: partial_and_var
+  tag_generic_attribute:
+    - match: '\b([a-zA-Z0-9_-]+)\b\s*(=)'
+      captures:
+        1: entity.other.attribute-name.generic.html
+        2: punctuation.separator.key-value.html
+      push:
+        - meta_scope: entity.other.attribute-name.html
+        - match: (?<='|"|)
+          captures:
+            1: entity.other.attribute-name.generic.html
+            2: punctuation.separator.key-value.html
+          pop: true
+        - include: string
+  tag_id_attribute:
+    - match: \b(id)\b\s*(=)
+      captures:
+        1: entity.other.attribute-name.id.html
+        2: punctuation.separator.key-value.html
+      push:
+        - meta_scope: meta.attribute-with-value.id.html
+        - match: (?<='|"|)
+          captures:
+            1: entity.other.attribute-name.id.html
+            2: punctuation.separator.key-value.html
+          pop: true
+        - include: string
+  yfm:
+    - match: (?<!\s)---\n$
+      push:
+        - meta_scope: markup.raw.yaml.front-matter
+        - match: ^---\s
+          pop: true
+        - include: scope:source.yaml

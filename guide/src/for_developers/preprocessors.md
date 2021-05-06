@@ -38,7 +38,7 @@ In typical unix style, all inputs to the plugin will be written to `stdin` as
 JSON and `mdbook` will read from `stdout` if it is expecting output.
 
 The easiest way to get started is by creating your own implementation of the
-`Preprocessor` trait (e.g. in `lib.rs`) and then creating a shell binary which
+`Preprocessor` trait (e.g. in `lib.rs`) and then creating a bash binary which
 translates inputs to the correct `Preprocessor` method. For convenience, there
 is [an example no-op preprocessor] in the `examples/` directory which can easily
 be adapted for other preprocessors.

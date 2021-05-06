@@ -24,7 +24,7 @@ no reason why it couldn't be accomplished using something like Python or Ruby.
 First you'll want to create a new binary program and add `mdbook` as a
 dependency.
 
-```shell
+```bash
 $ cargo new --bin mdbook-wordcount
 $ cd mdbook-wordcount
 $ cargo add mdbook
@@ -92,7 +92,7 @@ fn count_words(ch: &Chapter) -> usize {
 Now we've got the basics running, we want to actually use it. First, install the
 program.
 
-```shell
+```bash
 $ cargo install --path .
 ```
 
@@ -120,7 +120,7 @@ to make sure to add the HTML backend, even if its table just stays empty.
 Now you just need to build your book like normal, and everything should *Just
 Work*.
 
-```shell
+```bash
 $ mdbook build
 ...
 2018-01-16 07:31:15 [INFO] (mdbook::renderer): Invoking the "mdbook-wordcount" renderer
@@ -307,7 +307,7 @@ like this:
 
 Now, if we reinstall the backend and build a book,
 
-```shell
+```bash
 $ cargo install --path . --force
 $ mdbook build /path/to/book
 ...

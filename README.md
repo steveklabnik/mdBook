@@ -6,6 +6,9 @@
 
 mdBook is a utility to create modern online books from Markdown files.
 
+This fork uses [`syntect`](https://trishume/syntect), which is helpful for a few reasons:
+- Syntax highlighting is static (excluding the Ace editor), meaning page load times will be faster
+- Syntect uses `.sublime-syntax` files (which can be easily converted from the ubiquitous `.tmLanguage` and `.tmLanguage.json` formats), rather than a completely separate format (highlight.js) that is not compatible with other formats due to architectural differences.
 
 ## What does it look like?
 

@@ -14,7 +14,7 @@ html {
 #searchresults a,
 .content a:link,
 a:visited,
-a > .hljs {
+a > .scode {
     color: var(--links);
 }
 
@@ -187,18 +187,18 @@ a > .hljs {
 
 /* Inline code */
 
-:not(pre) > .hljs {
+:not(pre) > .scode {
     display: inline;
     padding: 0.1em 0.3em;
     border-radius: 3px;
 }
 
-:not(pre):not(a) > .hljs {
+:not(pre):not(a) > .scode {
     color: var(--inline-code-color);
     overflow-x: initial;
 }
 
-a:hover > .hljs {
+a:hover > .scode {
     text-decoration: underline;
 }
 

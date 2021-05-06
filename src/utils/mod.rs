@@ -7,10 +7,15 @@ use crate::errors::Error;
 use regex::Regex;
 
 use pulldown_cmark::{html, CodeBlockKind, CowStr, Event, Options, Parser, Tag};
+use syntect::{
+    html::ClassedHTMLGenerator,
+    parsing::{SyntaxReference, SyntaxSet},
+    util::LinesWithEndings,
+};
 
-use std::borrow::Cow;
-use std::fmt::Write;
 use std::path::Path;
+use std::{borrow::Cow, path::PathBuf};
+use std::{collections::HashMap, fmt::Write};
 
 pub use self::string::{
     take_anchored_lines, take_lines, take_rustdoc_include_anchored_lines,
@@ -165,7 +170,7 @@ fn adjust_links<'a>(event: Event<'a>, path: Option<&Path>) -> Event<'a> {
 
 /// Wrapper around the pulldown-cmark parser for rendering markdown to HTML.
 pub fn render_markdown(text: &str, curly_quotes: bool) -> String {
-    render_markdown_with_path(text, curly_quotes, None)
+    render_markdown_with_path(text, curly_quotes, None, None)
 }
 
 pub fn new_cmark_parser(text: &str) -> Parser<'_> {
@@ -177,17 +182,153 @@ pub fn new_cmark_parser(text: &str) -> Parser<'_> {
     Parser::new_ext(text, opts)
 }
 
-pub fn render_markdown_with_path(text: &str, curly_quotes: bool, path: Option<&Path>) -> String {
+pub fn render_markdown_with_path(
+    text: &str,
+    curly_quotes: bool,
+    path: Option<&Path>,
+    theme_dir: Option<PathBuf>,
+) -> String {
     let mut s = String::with_capacity(text.len() * 3 / 2);
     let p = new_cmark_parser(text);
     let mut converter = EventQuoteConverter::new(curly_quotes);
+
+    let syntaxes = potentially_load_syntaxes(
+        syntect::dumps::from_binary(include_bytes!("../theme/syntaxes.bin")),
+        theme_dir,
+    );
+    let mut highlighter = CodeHighlighter::new();
+
     let events = p
         .map(clean_codeblock_headers)
+        .map(|event| highlighter.highlight(&syntaxes, event))
         .map(|event| adjust_links(event, path))
         .map(|event| converter.convert(event));
 
     html::push_html(&mut s, events);
     s
+}
+
+lazy_static! {
+    pub static ref BORING_LINES_REGEX: Regex = Regex::new(r"^(\s*)#(.?)(.*)(\n)?$").unwrap();
+}
+
+struct CodeHighlighter<'a> {
+    highlight: bool,
+    is_rust: bool,
+    syntax: Option<&'a SyntaxReference>,
+}
+
+impl<'a> CodeHighlighter<'a> {
+    fn new() -> Self {
+        Self {
+            highlight: false,
+            syntax: None,
+            is_rust: false,
+        }
+    }
+
+    fn highlight<'b>(&mut self, syntaxes: &'a SyntaxSet, event: Event<'b>) -> Event<'b> {
+        match event {
+            Event::Start(Tag::CodeBlock(CodeBlockKind::Fenced(ref info))) => {
+                self.highlight = true;
+                let lang_name = info.split(',').next();
+                if let Some(name) = lang_name {
+                    if name.is_empty()
+                        || name.eq_ignore_ascii_case("plaintext")
+                        || name.eq_ignore_ascii_case("text")
+                        || name.eq_ignore_ascii_case("plain")
+                        || name.eq_ignore_ascii_case("txt")
+                    {
+                        self.highlight = false;
+                        return event;
+                    }
+
+                    self.syntax = syntaxes.find_syntax_by_token(name);
+                    if self.syntax.is_none() {
+                        warn!("Could not find a syntax for the language `{}`. Treating as plain text for now.", name);
+                        self.highlight = false;
+                        return event;
+                    }
+                    if let Some(syntax) = self.syntax {
+                        if syntax.name == "Rust" {
+                            self.is_rust = true;
+                        }
+                    }
+                    event
+                } else {
+                    self.highlight = false;
+                    event
+                }
+            }
+            Event::End(Tag::CodeBlock(_)) => {
+                self.highlight = false;
+                event
+            }
+            Event::Text(code) if self.highlight => {
+                let mut gen = ClassedHTMLGenerator::new_with_class_style(
+                    &self.syntax.unwrap(),
+                    syntaxes,
+                    syntect::html::ClassStyle::SpacedPrefixed { prefix: "syn-" },
+                );
+                let mut boring = HashMap::new();
+                for (idx, line) in LinesWithEndings::from(&code).enumerate() {
+                    let mut line = CowStr::from(line);
+                    if self.is_rust {
+                        let mut result = String::with_capacity(line.len());
+                        if let Some(caps) = BORING_LINES_REGEX.captures(&line) {
+                            if &caps[2] == "#" {
+                                result += &caps[1];
+                                result += &caps[2];
+                                result += &caps[3];
+                                line = CowStr::from(result);
+                            } else if &caps[2] != "!" && &caps[2] != "[" {
+                                result += "<span class=\"boring\">";
+                                result += &caps[1];
+                                if &caps[2] != " " {
+                                    result += &caps[2];
+                                }
+                                result += &caps[3];
+                                result += "\n";
+                                result += "</span>";
+                                boring.insert(idx, result);
+                                line = CowStr::from("")
+                            }
+                        }
+                    }
+                    gen.parse_html_for_line_which_includes_newline(&line);
+                }
+                let mut output_html = gen.finalize();
+                output_html.push('\n');
+                let mut output_final = output_html.clone();
+                let mut line_number = 0;
+                let mut added_bytes = 0;
+                for (idx, ch) in output_html.char_indices() {
+                    if ch == '\n' || idx == 0 {
+                        if let Some(line) = boring.get(&line_number) {
+                            output_final.insert_str(idx + added_bytes, line);
+                            added_bytes += line.len();
+                            boring.remove(&line_number);
+                        }
+                        line_number += 1;
+                    }
+                }
+                Event::Html(CowStr::from(output_final))
+            }
+            _ => event,
+        }
+    }
+}
+
+pub fn potentially_load_syntaxes(mut syntaxes: SyntaxSet, theme_dir: Option<PathBuf>) -> SyntaxSet {
+    if let Some(mut path) = theme_dir {
+        path.push("syntaxes");
+        if path.exists() {
+            let mut builder = syntaxes.into_builder();
+            builder.add_from_folder(path, true).unwrap();
+            syntaxes = builder.build();
+        }
+    }
+    syntaxes
 }
 
 struct EventQuoteConverter {
@@ -342,9 +483,10 @@ more text with spaces
 "#;
 
             let expected = r#"<p>some text with spaces</p>
-<pre><code class="language-rust">fn main() {
-// code inside is unchanged
-}
+<pre><code class="language-rust"><span class="syn-source syn-rust"><span class="syn-meta syn-function syn-rust"><span class="syn-meta syn-function syn-rust"><span class="syn-storage syn-type syn-function syn-rust">fn</span> </span><span class="syn-entity syn-name syn-function syn-rust">main</span></span><span class="syn-meta syn-function syn-rust"><span class="syn-meta syn-function syn-parameters syn-rust"><span class="syn-punctuation syn-section syn-parameters syn-begin syn-rust">(</span></span><span class="syn-meta syn-function syn-rust"><span class="syn-meta syn-function syn-parameters syn-rust"><span class="syn-punctuation syn-section syn-parameters syn-end syn-rust">)</span></span></span></span><span class="syn-meta syn-function syn-rust"> </span><span class="syn-meta syn-function syn-rust"><span class="syn-meta syn-block syn-rust"><span class="syn-punctuation syn-section syn-block syn-begin syn-rust">{</span>
+<span class="syn-comment syn-line syn-double-slash syn-rust"><span class="syn-punctuation syn-definition syn-comment syn-rust">//</span> code inside is unchanged
+</span></span><span class="syn-meta syn-block syn-rust"><span class="syn-punctuation syn-section syn-block syn-end syn-rust">}</span></span></span>
+</span>
 </code></pre>
 <p>more text with spaces</p>
 "#;

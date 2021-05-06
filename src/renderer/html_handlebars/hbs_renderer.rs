@@ -56,6 +56,7 @@ impl HtmlHandlebars {
             &ch.content,
             ctx.html_config.curly_quotes,
             Some(&path),
+            ctx.html_config.theme,
         );
         if !ctx.is_index {
             // Add page break between chapters
@@ -225,10 +226,9 @@ impl HtmlHandlebars {
         if let Some(contents) = &theme.favicon_svg {
             write_file(destination, "favicon.svg", &contents)?;
         }
-        write_file(destination, "highlight.css", &theme.highlight_css)?;
-        write_file(destination, "tomorrow-night.css", &theme.tomorrow_night_css)?;
-        write_file(destination, "ayu-highlight.css", &theme.ayu_highlight_css)?;
-        write_file(destination, "highlight.js", &theme.highlight_js)?;
+        write_file(destination, "css/syntax/light.css", &theme.syntax_light_css)?;
+        write_file(destination, "css/syntax/dark.css", &theme.syntax_dark_css)?;
+        write_file(destination, "css/syntax/ayu.css", &theme.syntax_ayu_css)?;
         write_file(destination, "clipboard.min.js", &theme.clipboard_js)?;
         write_file(
             destination,
@@ -878,14 +878,10 @@ fn add_playground_pre(
         .into_owned()
 }
 
-lazy_static! {
-    static ref BORING_LINES_REGEX: Regex = Regex::new(r"^(\s*)#(.?)(.*)$").unwrap();
-}
-
 fn hide_lines(content: &str) -> String {
     let mut result = String::with_capacity(content.len());
     for line in content.lines() {
-        if let Some(caps) = BORING_LINES_REGEX.captures(line) {
+        if let Some(caps) = crate::utils::BORING_LINES_REGEX.captures(line) {
             if &caps[2] == "#" {
                 result += &caps[1];
                 result += &caps[2];

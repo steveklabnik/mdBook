@@ -395,7 +395,7 @@ book's title without needing to touch your `book.toml`.
 > This means, if you so desired, you could override all book metadata when
 > building the book with something like
 >
-> ```shell
+> ```bash
 > $ export MDBOOK_BOOK="{'title': 'My Awesome Book', authors: ['Michael-F-Bryan']}"
 > $ mdbook build
 > ```

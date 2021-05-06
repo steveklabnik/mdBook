@@ -151,11 +151,13 @@ impl BookBuilder {
         let mut js = File::create(themedir.join("book.js"))?;
         js.write_all(theme::JS)?;
 
-        let mut highlight_css = File::create(themedir.join("highlight.css"))?;
-        highlight_css.write_all(theme::HIGHLIGHT_CSS)?;
+        let syntaxdir = cssdir.join("syntax");
+        if !syntaxdir.exists() {
+            fs::create_dir(&syntaxdir)?;
+        }
 
-        let mut highlight_js = File::create(themedir.join("highlight.js"))?;
-        highlight_js.write_all(theme::HIGHLIGHT_JS)?;
+        let mut highlight_css = File::create(syntaxdir.join("light.css"))?;
+        highlight_css.write_all(theme::SYNTAX_LIGHT_CSS)?;
 
         Ok(())
     }

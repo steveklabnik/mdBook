@@ -356,7 +356,7 @@ fn able_to_include_playground_files_in_chapters() {
 
     let playground_strings = &[
         r#"class="playground""#,
-        r#"println!(&quot;Hello World!&quot;);"#,
+        r#"<span class="syn-support syn-macro syn-rust">println!</span><span class="syn-meta syn-group syn-rust"><span class="syn-punctuation syn-section syn-group syn-begin syn-rust">(</span></span><span class="syn-meta syn-group syn-rust"><span class="syn-string syn-quoted syn-double syn-rust"><span class="syn-punctuation syn-definition syn-string syn-begin syn-rust">&quot;</span>Hello World!<span class="syn-punctuation syn-definition syn-string syn-end syn-rust">&quot;</span></span></span><span class="syn-meta syn-group syn-rust"><span class="syn-punctuation syn-section syn-group syn-end syn-rust">)</span></span><span class="syn-punctuation syn-terminator syn-rust">;</span>"#,
     ];
 
     assert_contains_strings(&second, playground_strings);

@@ -55,7 +55,7 @@ your own `highlight.js` file:
 - rust
 - scala
 - scss
-- shell
+- bash
 - sql
 - swift
 - typescript

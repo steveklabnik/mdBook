@@ -24,10 +24,9 @@ pub static VARIABLES_CSS: &[u8] = include_bytes!("css/variables.css");
 pub static FAVICON_PNG: &[u8] = include_bytes!("favicon.png");
 pub static FAVICON_SVG: &[u8] = include_bytes!("favicon.svg");
 pub static JS: &[u8] = include_bytes!("book.js");
-pub static HIGHLIGHT_JS: &[u8] = include_bytes!("highlight.js");
-pub static TOMORROW_NIGHT_CSS: &[u8] = include_bytes!("tomorrow-night.css");
-pub static HIGHLIGHT_CSS: &[u8] = include_bytes!("highlight.css");
-pub static AYU_HIGHLIGHT_CSS: &[u8] = include_bytes!("ayu-highlight.css");
+pub static SYNTAX_DARK_CSS: &[u8] = include_bytes!("css/syntax/dark.css");
+pub static SYNTAX_LIGHT_CSS: &[u8] = include_bytes!("css/syntax/light.css");
+pub static SYNTAX_AYU_CSS: &[u8] = include_bytes!("css/syntax/ayu.css");
 pub static CLIPBOARD_JS: &[u8] = include_bytes!("clipboard.min.js");
 pub static FONT_AWESOME: &[u8] = include_bytes!("FontAwesome/css/font-awesome.min.css");
 pub static FONT_AWESOME_EOT: &[u8] = include_bytes!("FontAwesome/fonts/fontawesome-webfont.eot");
@@ -57,10 +56,9 @@ pub struct Theme {
     pub favicon_png: Option<Vec<u8>>,
     pub favicon_svg: Option<Vec<u8>>,
     pub js: Vec<u8>,
-    pub highlight_css: Vec<u8>,
-    pub tomorrow_night_css: Vec<u8>,
-    pub ayu_highlight_css: Vec<u8>,
-    pub highlight_js: Vec<u8>,
+    pub syntax_dark_css: Vec<u8>,
+    pub syntax_light_css: Vec<u8>,
+    pub syntax_ayu_css: Vec<u8>,
     pub clipboard_js: Vec<u8>,
 }
 
@@ -91,16 +89,18 @@ impl Theme {
                     theme_dir.join("css/variables.css"),
                     &mut theme.variables_css,
                 ),
-                (theme_dir.join("highlight.js"), &mut theme.highlight_js),
                 (theme_dir.join("clipboard.min.js"), &mut theme.clipboard_js),
-                (theme_dir.join("highlight.css"), &mut theme.highlight_css),
                 (
-                    theme_dir.join("tomorrow-night.css"),
-                    &mut theme.tomorrow_night_css,
+                    theme_dir.join("css/syntax/light.css"),
+                    &mut theme.syntax_light_css,
                 ),
                 (
-                    theme_dir.join("ayu-highlight.css"),
-                    &mut theme.ayu_highlight_css,
+                    theme_dir.join("css/syntax/dark.css"),
+                    &mut theme.syntax_dark_css,
+                ),
+                (
+                    theme_dir.join("css/syntax/ayu.css"),
+                    &mut theme.syntax_ayu_css,
                 ),
             ];
 
@@ -156,10 +156,9 @@ impl Default for Theme {
             favicon_png: Some(FAVICON_PNG.to_owned()),
             favicon_svg: Some(FAVICON_SVG.to_owned()),
             js: JS.to_owned(),
-            highlight_css: HIGHLIGHT_CSS.to_owned(),
-            tomorrow_night_css: TOMORROW_NIGHT_CSS.to_owned(),
-            ayu_highlight_css: AYU_HIGHLIGHT_CSS.to_owned(),
-            highlight_js: HIGHLIGHT_JS.to_owned(),
+            syntax_dark_css: SYNTAX_DARK_CSS.to_owned(),
+            syntax_ayu_css: SYNTAX_AYU_CSS.to_owned(),
+            syntax_light_css: SYNTAX_LIGHT_CSS.to_owned(),
             clipboard_js: CLIPBOARD_JS.to_owned(),
         }
     }
@@ -212,17 +211,17 @@ mod tests {
             "css/fonts.css",
             "css/general.css",
             "css/print.css",
+            "css/syntax/ayu.css",
+            "css/syntax/dark.css",
+            "css/syntax/light.css",
             "css/variables.css",
             "book.js",
-            "highlight.js",
-            "tomorrow-night.css",
-            "highlight.css",
-            "ayu-highlight.css",
             "clipboard.min.js",
         ];
 
         let temp = TempFileBuilder::new().prefix("mdbook-").tempdir().unwrap();
         fs::create_dir(temp.path().join("css")).unwrap();
+        fs::create_dir(temp.path().join("css").join("syntax")).unwrap();
 
         // "touch" all of the special files so we have empty copies
         for file in &files {
@@ -243,10 +242,9 @@ mod tests {
             favicon_png: Some(Vec::new()),
             favicon_svg: Some(Vec::new()),
             js: Vec::new(),
-            highlight_css: Vec::new(),
-            tomorrow_night_css: Vec::new(),
-            ayu_highlight_css: Vec::new(),
-            highlight_js: Vec::new(),
+            syntax_light_css: Vec::new(),
+            syntax_dark_css: Vec::new(),
+            syntax_ayu_css: Vec::new(),
             clipboard_js: Vec::new(),
         };
 

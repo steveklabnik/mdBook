@@ -118,11 +118,10 @@ fn copy_theme() {
         "css/chrome.css",
         "css/general.css",
         "css/print.css",
+        "css/syntax/light.css",
         "css/variables.css",
         "favicon.png",
         "favicon.svg",
-        "highlight.css",
-        "highlight.js",
         "index.hbs",
     ];
     let theme_dir = temp.path().join("theme");

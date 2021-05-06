@@ -98,7 +98,7 @@ If your CI doesn't support GitHub pages, or you're deploying somewhere else
 with integrations such as Github Pages:
  *note: you may want to use different tmp dirs*:
 
-```console
+```bash
 $> git worktree add /tmp/book gh-pages
 $> mdbook build
 $> rm -rf /tmp/book/* # this won't delete the .git directory
