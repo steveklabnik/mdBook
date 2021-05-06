@@ -20,7 +20,7 @@ const LIVE_RELOAD_ENDPOINT: &str = "__livereload";
 // Create clap subcommand arguments
 pub fn make_subcommand<'a, 'b>() -> App<'a, 'b> {
     SubCommand::with_name("serve")
-        .about("Serves a book at http://localhost:3000, and rebuilds it on changes")
+        .about("Serves a book at http://127.0.0.1:3000, and rebuilds it on changes")
         .arg_from_usage(
             "-d, --dest-dir=[dest-dir] 'Output directory for the book{n}\
              Relative paths are interpreted relative to the book's root directory.{n}\
@@ -35,7 +35,7 @@ pub fn make_subcommand<'a, 'b>() -> App<'a, 'b> {
                 .short("n")
                 .long("hostname")
                 .takes_value(true)
-                .default_value("localhost")
+                .default_value("127.0.0.1")
                 .empty_values(false)
                 .help("Hostname to listen on for HTTP connections"),
         )

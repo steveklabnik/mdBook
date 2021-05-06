@@ -126,7 +126,7 @@ explanation, check out the [User Guide].
 - `mdbook serve`
 
     Does the same thing as `mdbook watch` but additionally serves the book at
-    `http://localhost:3000` (port is changeable) and reloads the browser when a
+    `http://127.0.0.1:3000` (port is changeable) and reloads the browser when a
     change occurs.
 
 - `mdbook clean`

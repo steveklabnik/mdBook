@@ -1,7 +1,7 @@
 # The serve command
 
 The serve command is used to preview a book by serving it over HTTP at
-`localhost:3000` by default. Additionally it watches the book's directory for
+`127.0.0.1:3000` by default. Additionally it watches the book's directory for
 changes, rebuilding the book and refreshing clients for each change. A websocket
 connection is used to trigger the client-side refresh.
 
