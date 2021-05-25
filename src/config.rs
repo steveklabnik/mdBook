@@ -622,6 +622,8 @@ pub struct Playground {
     pub copy_js: bool,
     /// Display line numbers on playground snippets. Default: `false`.
     pub line_numbers: bool,
+    /// Display the run button. Default: `true`
+    pub runnable: bool,
 }
 
 impl Default for Playground {
@@ -631,6 +633,7 @@ impl Default for Playground {
             copyable: true,
             copy_js: true,
             line_numbers: false,
+            runnable: true,
         }
     }
 }
@@ -773,6 +776,7 @@ mod tests {
             copyable: true,
             copy_js: true,
             line_numbers: false,
+            runnable: true,
         };
         let html_should_be = HtmlConfig {
             curly_quotes: true,
