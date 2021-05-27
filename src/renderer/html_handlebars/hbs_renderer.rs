@@ -817,13 +817,19 @@ fn add_playground_pre(
     edition: Option<RustEdition>,
 ) -> String {
     let regex = Regex::new(r##"((?s)<code[^>]?class="([^"]+)".*?>(.*?)</code>)"##).unwrap();
+    let language_regex = Regex::new(r"\blanguage-(\w+)\b").unwrap();
     regex
         .replace_all(html, |caps: &Captures<'_>| {
             let text = &caps[1];
             let classes = &caps[2];
             let code = &caps[3];
+            let language = if let Some(captures) = language_regex.captures(classes) {
+                captures[1].to_owned()
+            } else {
+                String::from("")
+            };
 
-            if classes.contains("language-rust") {
+            if language == "rust" {
                 if (!classes.contains("ignore")
                     && !classes.contains("noplayground")
                     && !classes.contains("noplaypen"))
@@ -864,12 +870,28 @@ fn add_playground_pre(
                                 )
                                 .into()
                             };
-                            hide_lines(&content)
+                            RUST_LINE_HIDING_PATTERN.transform_lines(&content)
                         }
                     )
                 } else {
-                    format!("<code class=\"{}\">{}</code>", classes, hide_lines(code))
+                    format!(
+                        "<code class=\"{}\">{}</code>",
+                        classes,
+                        RUST_LINE_HIDING_PATTERN.transform_lines(code)
+                    )
                 }
+            } else if let Some(pattern) = playground_config.line_hiding_patterns.get(&language) {
+                format!(
+                    "<code class=\"{}\">{}</code>",
+                    classes,
+                    LineHidingPattern::new(pattern).transform_lines(code)
+                )
+            } else if let Some(prefix) = playground_config.line_hiding_prefixes.get(&language) {
+                format!(
+                    "<code class=\"{}\">{}</code>",
+                    classes,
+                    LineHidingPattern::new_simple(prefix).transform_lines(code)
+                )
             } else {
                 // not language-rust, so no-op
                 text.to_owned()
@@ -879,35 +901,75 @@ fn add_playground_pre(
 }
 
 lazy_static! {
-    static ref BORING_LINES_REGEX: Regex = Regex::new(r"^(\s*)#(.?)(.*)$").unwrap();
+    static ref RUST_LINE_HIDING_PATTERN: LineHidingPattern =
+        LineHidingPattern::new(r"^(\s*)(?P<escape>#)?#(?: (.*)|([^#!\[ ].*))?$");
 }
 
-fn hide_lines(content: &str) -> String {
-    let mut result = String::with_capacity(content.len());
-    for line in content.lines() {
-        if let Some(caps) = BORING_LINES_REGEX.captures(line) {
-            if &caps[2] == "#" {
-                result += &caps[1];
-                result += &caps[2];
-                result += &caps[3];
-                result += "\n";
-                continue;
-            } else if &caps[2] != "!" && &caps[2] != "[" {
-                result += "<span class=\"boring\">";
-                result += &caps[1];
-                if &caps[2] != " " {
-                    result += &caps[2];
+struct LineHidingPattern {
+    regex: Regex,
+}
+
+impl LineHidingPattern {
+    fn new(pattern: &str) -> LineHidingPattern {
+        LineHidingPattern {
+            regex: Regex::new(pattern).unwrap(),
+        }
+    }
+
+    fn new_simple(prefix: &str) -> LineHidingPattern {
+        LineHidingPattern {
+            regex: Regex::new(&format!(
+                r"^(\s*)(?P<escape>\\)?{}(.*)$",
+                regex::escape(prefix)
+            ))
+            .unwrap(),
+        }
+    }
+
+    /// Expects a group named `escape`
+    /// if the string doesn't match, it's returned directly
+    /// when `escape` matches, the entire string except the `escape` group is returned
+    /// otherwise, all the groups are concatenated and returned
+    ///
+    /// returns the resulting string and a bool specifying if the line should be hidden
+    fn transform(&self, line: &str) -> (String, bool) {
+        if let Some(captures) = self.regex.captures(line) {
+            if let Some(m) = captures.name("escape") {
+                // pick everything before and everything after the escape group
+                let mut out = String::with_capacity(line.len());
+                out += &line[0..m.start()];
+                out += &line[m.end()..line.len()];
+                (out, false)
+            } else {
+                // combine the contents of all the capture groups.
+                let mut out = String::with_capacity(line.len());
+                for opt in captures.iter().skip(1) {
+                    if let Some(m) = opt {
+                        out += m.as_str()
+                    }
                 }
-                result += &caps[3];
-                result += "\n";
-                result += "</span>";
-                continue;
+                (out, true)
+            }
+        } else {
+            (line.to_owned(), false)
+        }
+    }
+
+    fn transform_lines(&self, content: &str) -> String {
+        let mut result = String::with_capacity(content.len());
+        for line in content.lines() {
+            let (out, should_hide) = self.transform(line);
+            if should_hide {
+                result += "<span class=\"boring\">";
+            }
+            result += &out;
+            result += "\n";
+            if should_hide {
+                result += "</span>"
             }
         }
-        result += line;
-        result += "\n";
+        result
     }
-    result
 }
 
 fn partition_source(s: &str) -> (String, String) {

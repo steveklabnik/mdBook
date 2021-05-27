@@ -7,14 +7,14 @@ with a `#` [like you would with Rustdoc][rustdoc-hide].
 
 [rustdoc-hide]: https://doc.rust-lang.org/stable/rustdoc/documentation-tests.html#hiding-portions-of-the-example
 
-```bash
+<pre><code class="language-markdown">```rust
 # fn main() {
     let x = 5;
     let y = 6;
 
     println!("{}", x + y);
 # }
-```
+```</code></pre>
 
 Will render as
 
@@ -26,6 +26,47 @@ Will render as
     println!("{}", x + y);
 # }
 ```
+
+By default, this only works for code examples that are annotated with `rust`. However, you can define 
+custom prefixes for other languages by adding a new line-hiding prefix in your `book.toml` with the 
+language name and prefix character (you can even do multi-character prefixes if you really want to):
+
+```toml
+[output.html.playground.line-hiding-prefixes]
+python = "~"
+```
+
+The prefix will hide any lines that begin with the given prefix, but the prefix can be escaped using 
+a backslash. With the python prefix shown above, this:
+
+<pre><code class="language-markdown">```python
+~def fib():
+    a, b = 0, 1
+    while a < n:
+        print(a, end=' ')
+        a, b = b, a+b
+    print()
+    ~# hide me!
+    \~# leave me be!
+~fib(1000)
+```</code></pre>
+
+will render as
+
+```python
+~def fib():
+    a, b = 0, 1
+    while a < n:
+        print(a, end=' ')
+        a, b = b, a+b
+    print()
+    ~# hide me!
+    \~# leave me be!
+~fib(1000)
+```
+
+If you need something more advanced than a simple prefix (e.g. rust uses `#` but doesn't hide `#[...]` lines), 
+you can define a custom regular expression using [line-hiding patterns](./config.md#line-hiding-patterns).
 
 ## Including files
 

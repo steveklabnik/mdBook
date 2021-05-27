@@ -247,6 +247,59 @@ Available configuration options for the `[output.html.playground]` table:
 - **copy-js:** Copy JavaScript files for the editor to the output directory.
   Defaults to `true`.
 - **line-numbers** Display line numbers on editable sections of code. Requires both `editable` and `copy-js` to be `true`. Defaults to `false`.
+- **line-hiding-prefixes** A map of simple to use prefixes for hiding lines in various languages.  
+  (e.g. `{ python = "~" }` will hide lines in python blocks that start with `~`, but that `~` can be escaped with a backslash.)
+- **line-hiding-patterns** A map of complex patterns to use for hiding lines in various languages.
+
+#### Line-hiding patterns
+Line-hiding patterns define what lines in a code block should be hidden with togglable visibility. There is already a built-in pattern for rust, 
+which should behave identically to rustdoc. In rust, a hidden line starts with a `#`, however that can be escaped using a `##`, and
+lines that start with `#!` (e.g. `#![...]`) or `#[` (e.g. `#[...]`) *won't* be hidden.
+
+```toml
+[output.html.playground.line-hiding-prefixes]
+python = "~"
+[output.html.playground.line-hiding-patterns]
+somelanguage = "<custom pattern>"
+```
+
+The simplest way to add a line-hiding pattern is to add a line-hiding prefix, which is really an auto-generated pattern. 
+The generated pattern will hide any lines that begin with the specified prefix, unless it's preceded by a backslash.
+
+While a simple prefix will almost always work, sometimes a more complex pattern is necessary (e.g. rust won't hide `#[...]` lines), 
+and this is where fully-fledged line-hiding patterns kick in. These patterns are regular expressions and have to follow a few rules.
+
+- Each pattern should match an entire line.
+- The pattern should have a group named `escape`, and this group should be optional. Note the difference between 
+  the *contents* of the group being optional `(?P<escape>#?)` and the *group itself* being optional `(?P<escape>#)?`.
+- Everything else that you *care about* should be in unnamed groups.
+
+mdBook will then test the regex on each line and follow this process:
+
+- If the line doesn't match at all, the line is left unchanged and isn't hidden
+- If the line matches and the `escape` group matches, the escape group is cut out of the middle and the line isn't hidden
+- If the line matches and the `escape` group *doesn't* match, the result is the combined contents of *every match group*.
+  (This is why you add unnamed groups around everything you care about.) 
+
+Here is the pattern generated for a line-hiding prefix (the `{}` in replaced with the prefix string):
+```re
+^(\s*)(?P<escape>\\)?{}(.*)$
+```
+Breaking it down, we have
+- `^(\s*)`  
+  Match the indentation, and put it in a group to preserve it in the hidden output.
+- `(?P<escape>\\)?`  
+  If we find a backslash this group will match and trigger the escape mechanism.
+- `{}`  
+  Match the prefix. Note how this isn't in a group, meaning it won't be included in the hidden line.
+- `(.*)$`  
+  Match the rest of the line, and put it in a group to preserve it in the output.
+
+A more complex example would be the Rust pattern, which is beyond the scope of this guide. Most of the 
+changes are in the block after the `#` prefix, and are dedicated to ignoring `#[...]` and `#![...]` lines.
+```re
+^(\s*)(?P<escape>#)?#(?: (.*)|([^#!\[ ].*))?$
+```
 
 [Ace]: https://ace.c9.io/
 
@@ -310,6 +363,8 @@ level = 0
 editable = false
 copy-js = true
 line-numbers = false
+line-hiding-patterns = {}
+line-hiding-prefixes = {}
 
 [output.html.search]
 enable = true

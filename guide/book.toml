@@ -17,6 +17,9 @@ edit-url-template = "https://github.com/rust-lang/mdBook/edit/master/guide/{path
 editable = true
 line-numbers = true
 
+[output.html.playground.line-hiding-prefixes]
+python = "~"
+
 [output.html.search]
 limit-results = 20
 use-boolean-and = true
