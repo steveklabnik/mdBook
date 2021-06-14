@@ -33,7 +33,7 @@ Note the new `Undo Changes` button in the editable playgrounds.
 ## Customizing the Editor
 
 By default, the editor is the [Ace](https://ace.c9.io/) editor, but, if desired,
-the functionality may be overriden by providing a different folder:
+the functionality may be overridden by providing a different folder:
 
 ```toml
 [output.html.playground]
@@ -42,5 +42,5 @@ editor = "/path/to/editor"
 ```
 
 Note that for the editor changes to function correctly, the `book.js` inside of
-the `theme` folder will need to be overriden as it has some couplings with the
+the `theme` folder will need to be overridden as it has some couplings with the
 default Ace editor.

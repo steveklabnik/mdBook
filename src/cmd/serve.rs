@@ -161,5 +161,12 @@ async fn serve(
     let fallback_route = warp::fs::file(build_dir.join(file_404))
         .map(|reply| warp::reply::with_status(reply, warp::http::StatusCode::NOT_FOUND));
     let routes = livereload.or(book_route).or(fallback_route);
+
+    std::panic::set_hook(Box::new(move |panic_info| {
+        // exit if serve panics
+        error!("Unable to serve: {}", panic_info);
+        std::process::exit(1);
+    }));
+
     warp::serve(routes).run(address).await;
 }

@@ -25,9 +25,9 @@ book-test/
 - The `book` directory is where your book is rendered. All the output is ready
   to be uploaded to a server to be seen by your audience.
 
-- The `SUMMARY.md` file is the most important file, it's the skeleton of your
-  book and is discussed in more detail [in another
-  chapter](../format/summary.md)
+- The `SUMMARY.md` is the skeleton of your
+  book, and is discussed in more detail [in another
+  chapter](../format/summary.md).
 
 #### Tip: Generate chapters from SUMMARY.md
 

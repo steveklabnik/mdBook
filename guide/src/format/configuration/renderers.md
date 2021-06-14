@@ -1,161 +1,4 @@
-# Configuration
-
-You can configure the parameters for your book in the ***book.toml*** file.
-
-Here is an example of what a ***book.toml*** file might look like:
-
-```toml
-[book]
-title = "Example book"
-author = "John Doe"
-description = "The example book covers examples."
-
-[rust]
-edition = "2018"
-
-[build]
-build-dir = "my-example-book"
-create-missing = false
-
-[preprocessor.index]
-
-[preprocessor.links]
-
-[output.html]
-additional-css = ["custom.css"]
-
-[output.html.search]
-limit-results = 15
-```
-
-## Supported configuration options
-
-It is important to note that **any** relative path specified in the
-configuration will always be taken relative from the root of the book where the
-configuration file is located.
-
-### General metadata
-
-This is general information about your book.
-
-- **title:** The title of the book
-- **authors:** The author(s) of the book
-- **description:** A description for the book, which is added as meta
-  information in the html `<head>` of each page
-- **src:** By default, the source directory is found in the directory named
-  `src` directly under the root folder. But this is configurable with the `src`
-  key in the configuration file.
-- **language:** The main language of the book, which is used as a language attribute `<html lang="en">` for example.
-
-**book.toml**
-```toml
-[book]
-title = "Example book"
-authors = ["John Doe", "Jane Doe"]
-description = "The example book covers examples."
-src = "my-src"  # the source files will be found in `root/my-src` instead of `root/src`
-language = "en"
-```
-
-### Rust options
-
-Options for the Rust language, relevant to running tests and playground
-integration.
-
-- **edition**: Rust edition to use by default for the code snippets. Default
-  is "2015". Individual code blocks can be controlled with the `edition2015`
-  or `edition2018` annotations, such as:
-
-  ~~~text
-  ```rust,edition2015
-  // This only works in 2015.
-  let try = true;
-  ```
-  ~~~
-
-### Build options
-
-This controls the build process of your book.
-
-- **build-dir:** The directory to put the rendered book in. By default this is
-  `book/` in the book's root directory.
-- **create-missing:** By default, any missing files specified in `SUMMARY.md`
-  will be created when the book is built (i.e. `create-missing = true`). If this
-  is `false` then the build process will instead exit with an error if any files
-  do not exist.
-- **use-default-preprocessors:** Disable the default preprocessors of (`links` &
-  `index`) by setting this option to `false`.
-
-  If you have the same, and/or other preprocessors declared via their table
-  of configuration, they will run instead.
-
-  - For clarity, with no preprocessor configuration, the default `links` and
-    `index` will run.
-  - Setting `use-default-preprocessors = false` will disable these
-    default preprocessors from running.
-  - Adding `[preprocessor.links]`, for example, will ensure, regardless of
-    `use-default-preprocessors` that `links` it will run.
-
-## Configuring Preprocessors
-
-The following preprocessors are available and included by default:
-
-- `links`: Expand the `{{ #playground }}`, `{{ #include }}`, and `{{ #rustdoc_include }}` handlebars
-  helpers in a chapter to include the contents of a file.
-- `index`: Convert all chapter files named `README.md` into `index.md`. That is
-  to say, all `README.md` would be rendered to an index file `index.html` in the
-  rendered book.
-
-
-**book.toml**
-```toml
-[build]
-build-dir = "build"
-create-missing = false
-
-[preprocessor.links]
-
-[preprocessor.index]
-```
-
-### Custom Preprocessor Configuration
-
-Like renderers, preprocessor will need to be given its own table (e.g.
-`[preprocessor.mathjax]`). In the section, you may then pass extra
-configuration to the preprocessor by adding key-value pairs to the table.
-
-For example
-
-```toml
-[preprocessor.links]
-# set the renderers this preprocessor will run for
-renderers = ["html"]
-some_extra_feature = true
-```
-
-#### Locking a Preprocessor dependency to a renderer
-
-You can explicitly specify that a preprocessor should run for a renderer by
-binding the two together.
-
-```toml
-[preprocessor.mathjax]
-renderers = ["html"]  # mathjax only makes sense with the HTML renderer
-```
-
-### Provide Your Own Command
-
-By default when you add a `[preprocessor.foo]` table to your `book.toml` file,
-`mdbook` will try to invoke the `mdbook-foo` executable. If you want to use a
-different program name or pass in command-line arguments, this behaviour can
-be overridden by adding a `command` field.
-
-```toml
-[preprocessor.random]
-command = "python random.py"
-```
-
-## Configuring Renderers
+# Configuring Renderers
 
 ### HTML renderer options
 
@@ -175,7 +18,7 @@ The following configuration options are available:
   CSS media query. Defaults to `navy`.
 - **curly-quotes:** Convert straight quotes to curly quotes, except for those
   that occur in code blocks and code spans. Defaults to `false`.
-- **mathjax-support:** Adds support for [MathJax](mathjax.md). Defaults to
+- **mathjax-support:** Adds support for [MathJax](../mathjax.md). Defaults to
   `false`.
 - **copy-fonts:** Copies fonts.css and respective font files to the output directory and use them in the default theme. Defaults to `true`.
 - **google-analytics:** If you use Google Analytics, this option lets you enable
@@ -201,13 +44,21 @@ The following configuration options are available:
   an icon link will be output in the menu bar of the book.
 - **git-repository-icon:** The FontAwesome icon class to use for the git
   repository link. Defaults to `fab-github`.
+- **edit-url-template:** Edit url template, when provided shows a
+  "Suggest an edit" button for directly jumping to editing the currently
+  viewed page. For e.g. GitHub projects set this to
+  `https://github.com/<owner>/<repo>/edit/master/{path}` or for
+  Bitbucket projects set it to
+  `https://bitbucket.org/<owner>/<repo>/src/master/{path}?mode=edit`
+  where {path} will be replaced with the full path of the file in the
+  repository.
 - **redirect:** A subtable used for generating redirects when a page is moved.
   The table contains key-value pairs where the key is where the redirect file
   needs to be created, as an absolute path from the build directory, (e.g.
   `/appendices/bibliography.html`). The value can be any valid URI the
   browser should navigate to (e.g. `https://rust-lang.org/`,
   `/overview.html`, or `../bibliography.html`).
-- **input-404:** The name of the markdown file used for misssing files.
+- **input-404:** The name of the markdown file used for missing files.
   The corresponding output file will be the same, with the extension replaced with `html`.
   Defaults to `404.md`.
 - **site-url:** The url where the book will be hosted. This is required to ensure
@@ -286,6 +137,7 @@ additional-js = ["custom.js"]
 no-section-label = false
 git-repository-url = "https://github.com/rust-lang/mdBook"
 git-repository-icon = "fab-github"
+edit-url-template = "https://github.com/rust-lang/mdBook/edit/master/guide/{path}"
 site-url = "/example-book/"
 cname = "myproject.rs"
 input-404 = "not-found.md"
@@ -354,43 +206,4 @@ anything under `[output.foo]`). mdBook checks for two common fields:
 - **optional:** If `true`, then the command will be ignored if it is not
   installed, otherwise mdBook will fail with an error. Defaults to `false`.
 
-[alternative backends]: ../for_developers/backends.md
-
-## Environment Variables
-
-All configuration values can be overridden from the command line by setting the
-corresponding environment variable. Because many operating systems restrict
-environment variables to be alphanumeric characters or `_`, the configuration
-key needs to be formatted slightly differently to the normal `foo.bar.baz` form.
-
-Variables starting with `MDBOOK_` are used for configuration. The key is created
-by removing the `MDBOOK_` prefix and turning the resulting string into
-`kebab-case`. Double underscores (`__`) separate nested keys, while a single
-underscore (`_`) is replaced with a dash (`-`).
-
-For example:
-
-- `MDBOOK_foo` -> `foo`
-- `MDBOOK_FOO` -> `foo`
-- `MDBOOK_FOO__BAR` -> `foo.bar`
-- `MDBOOK_FOO_BAR` -> `foo-bar`
-- `MDBOOK_FOO_bar__baz` -> `foo-bar.baz`
-
-So by setting the `MDBOOK_BOOK__TITLE` environment variable you can override the
-book's title without needing to touch your `book.toml`.
-
-> **Note:** To facilitate setting more complex config items, the value of an
-> environment variable is first parsed as JSON, falling back to a string if the
-> parse fails.
->
-> This means, if you so desired, you could override all book metadata when
-> building the book with something like
->
-> ```shell
-> $ export MDBOOK_BOOK="{'title': 'My Awesome Book', authors: ['Michael-F-Bryan']}"
-> $ mdbook build
-> ```
-
-The latter case may be useful in situations where `mdbook` is invoked from a
-script or CI, where it sometimes isn't possible to update the `book.toml` before
-building.
+[alternative backends]: ../../for_developers/backends.md

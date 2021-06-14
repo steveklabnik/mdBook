@@ -160,6 +160,8 @@ pub struct Chapter {
     pub sub_items: Vec<BookItem>,
     /// The chapter's location, relative to the `SUMMARY.md` file.
     pub path: Option<PathBuf>,
+    /// The chapter's source file, relative to the `SUMMARY.md` file.
+    pub source_path: Option<PathBuf>,
     /// An ordered list of the names of each chapter above this one in the hierarchy.
     pub parent_names: Vec<String>,
 }
@@ -169,13 +171,15 @@ impl Chapter {
     pub fn new<P: Into<PathBuf>>(
         name: &str,
         content: String,
-        path: P,
+        p: P,
         parent_names: Vec<String>,
     ) -> Chapter {
+        let path: PathBuf = p.into();
         Chapter {
             name: name.to_string(),
             content,
-            path: Some(path.into()),
+            path: Some(path.clone()),
+            source_path: Some(path),
             parent_names,
             ..Default::default()
         }
@@ -188,6 +192,7 @@ impl Chapter {
             name: name.to_string(),
             content: String::new(),
             path: None,
+            source_path: None,
             parent_names,
             ..Default::default()
         }
@@ -195,10 +200,7 @@ impl Chapter {
 
     /// Check if the chapter is a draft chapter, meaning it has no path to a source markdown file.
     pub fn is_draft_chapter(&self) -> bool {
-        match self.path {
-            Some(_) => false,
-            None => true,
-        }
+        self.path.is_none()
     }
 }
 
@@ -438,6 +440,7 @@ And here is some \
             content: String::from("Hello World!"),
             number: Some(SectionNumber(vec![1, 2])),
             path: Some(PathBuf::from("second.md")),
+            source_path: Some(PathBuf::from("second.md")),
             parent_names: vec![String::from("Chapter 1")],
             sub_items: Vec::new(),
         };
@@ -446,6 +449,7 @@ And here is some \
             content: String::from(DUMMY_SRC),
             number: None,
             path: Some(PathBuf::from("chapter_1.md")),
+            source_path: Some(PathBuf::from("chapter_1.md")),
             parent_names: Vec::new(),
             sub_items: vec![
                 BookItem::Chapter(nested.clone()),
@@ -470,6 +474,7 @@ And here is some \
                 name: String::from("Chapter 1"),
                 content: String::from(DUMMY_SRC),
                 path: Some(PathBuf::from("chapter_1.md")),
+                source_path: Some(PathBuf::from("chapter_1.md")),
                 ..Default::default()
             })],
             ..Default::default()
@@ -510,6 +515,7 @@ And here is some \
                     content: String::from(DUMMY_SRC),
                     number: None,
                     path: Some(PathBuf::from("Chapter_1/index.md")),
+                    source_path: Some(PathBuf::from("Chapter_1/index.md")),
                     parent_names: Vec::new(),
                     sub_items: vec![
                         BookItem::Chapter(Chapter::new(
@@ -562,6 +568,7 @@ And here is some \
                     content: String::from(DUMMY_SRC),
                     number: None,
                     path: Some(PathBuf::from("Chapter_1/index.md")),
+                    source_path: Some(PathBuf::from("Chapter_1/index.md")),
                     parent_names: Vec::new(),
                     sub_items: vec![
                         BookItem::Chapter(Chapter::new(

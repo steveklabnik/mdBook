@@ -166,7 +166,7 @@ impl CmdRenderer {
                 } else {
                     // Let this bubble through to later be handled by
                     // handle_render_command_error.
-                    abs_exe.to_path_buf()
+                    abs_exe
                 }
             }
         };

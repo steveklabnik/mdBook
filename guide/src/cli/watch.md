@@ -3,7 +3,8 @@
 The `watch` command is useful when you want your book to be rendered on every
 file change. You could repeatedly issue `mdbook build` every time a file is
 changed. But using `mdbook watch` once will watch your files and will trigger a
-build automatically whenever you modify a file.
+build automatically whenever you modify a file; this includes re-creating
+deleted files still mentioned in `SUMMARY.md`!
 
 #### Specify a directory
 

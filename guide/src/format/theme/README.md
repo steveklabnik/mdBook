@@ -42,5 +42,5 @@ If you completely replace all built-in themes, be sure to also set
 [`output.html.preferred-dark-theme`] in the config, which defaults to the
 built-in `navy` theme.
 
-[`output.html.preferred-dark-theme`]: ../config.md#html-renderer-options
+[`output.html.preferred-dark-theme`]: ../configuration/renderers.md#html-renderer-options
 [newer browsers]: https://caniuse.com/#feat=link-icon-svg

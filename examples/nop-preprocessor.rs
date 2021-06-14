@@ -3,6 +3,7 @@ use clap::{App, Arg, ArgMatches, SubCommand};
 use mdbook::book::Book;
 use mdbook::errors::Error;
 use mdbook::preprocess::{CmdPreprocessor, Preprocessor, PreprocessorContext};
+use semver::{Version, VersionReq};
 use std::io;
 use std::process;
 
@@ -33,9 +34,10 @@ fn main() {
 fn handle_preprocessing(pre: &dyn Preprocessor) -> Result<(), Error> {
     let (ctx, book) = CmdPreprocessor::parse_input(io::stdin())?;
 
-    if ctx.mdbook_version != mdbook::MDBOOK_VERSION {
-        // We should probably use the `semver` crate to check compatibility
-        // here...
+    let book_version = Version::parse(&ctx.mdbook_version)?;
+    let version_req = VersionReq::parse(mdbook::MDBOOK_VERSION)?;
+
+    if version_req.matches(&book_version) != true {
         eprintln!(
             "Warning: The {} plugin was built against version {} of mdbook, \
              but we're being called from version {}",

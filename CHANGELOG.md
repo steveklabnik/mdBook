@@ -1,5 +1,55 @@
 # Changelog
 
+## mdBook 0.4.10
+[2f7293a...dc2062a](https://github.com/rust-lang/mdBook/compare/2f7293a...dc2062a)
+
+### Changed
+- Reverted breaking change in 0.4.9 that removed the `__non_exhaustive` marker
+  on the `Book` struct.
+  [#1572](https://github.com/rust-lang/mdBook/pull/1572)
+- Updated handlebars to 4.0.
+  [#1550](https://github.com/rust-lang/mdBook/pull/1550)
+- Removed the `chapter_begin` id on the print page's chapter separators.
+  [#1541](https://github.com/rust-lang/mdBook/pull/1541)
+
+## mdBook 0.4.9
+[7e01cf9...d325c60](https://github.com/rust-lang/mdBook/compare/7e01cf9...d325c60)
+
+### Changed
+- Updated all dependencies and raised the minimum Rust version to 1.42.
+  [#1528](https://github.com/rust-lang/mdBook/pull/1528)
+- Added more detail to error message when a preprocessor fails.
+  [#1526](https://github.com/rust-lang/mdBook/pull/1526)
+- Set max-width of HTML video tags to 100% to match img tags.
+  [#1542](https://github.com/rust-lang/mdBook/pull/1542)
+
+### Fixed
+- Type errors when parsing `book.toml` are no longer ignored.
+  [#1539](https://github.com/rust-lang/mdBook/pull/1539)
+- Better handling if `mdbook serve` fails to start the http server.
+  [#1555](https://github.com/rust-lang/mdBook/pull/1555)
+- Fixed the path for `edit-url-template` if the book used a source directory
+  other than `src`.
+  [#1554](https://github.com/rust-lang/mdBook/pull/1554)
+
+## mdBook 0.4.8
+[fcceee4...b592b10](https://github.com/rust-lang/mdBook/compare/fcceee4...b592b10)
+
+### Added
+- Added the option `output.html.edit-url-template` which can be a URL which is
+  linked on each page to direct the user to a site (such as GitHub) where the
+  user can directly suggest an edit for the page they are currently reading.
+  [#1506](https://github.com/rust-lang/mdBook/pull/1506)
+
+### Changed
+- Printed output now includes a page break between chapters.
+  [#1485](https://github.com/rust-lang/mdBook/pull/1485)
+
+### Fixed
+- HTML, such as HTML comments, is now ignored if it appears above the title line
+  in `SUMMARY.md`.
+  [#1437](https://github.com/rust-lang/mdBook/pull/1437)
+
 ## mdBook 0.4.7
 [9a9eb01...c83bbd6](https://github.com/rust-lang/mdBook/compare/9a9eb01...c83bbd6)
 

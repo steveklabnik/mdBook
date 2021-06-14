@@ -1,6 +1,6 @@
 [package]
 name = "mdbook"
-version = "0.4.7"
+version = "0.4.10"
 authors = [
     "Mathieu David <mathieudavid@mathieudavid.org>",
     "Michael-F-Bryan <michaelfbryan@gmail.com>",
@@ -20,7 +20,7 @@ anyhow = "1.0.28"
 chrono = "0.4"
 clap = "2.24"
 env_logger = "0.7.1"
-handlebars = "3.0"
+handlebars = "4.0"
 lazy_static = "1.0"
 log = "0.4"
 memchr = "2.0"
@@ -50,6 +50,7 @@ ammonia = { version = "3", optional = true }
 
 [dev-dependencies]
 select = "0.5"
+semver = "0.11.0"
 pretty_assertions = "0.6"
 walkdir = "2.0"
 

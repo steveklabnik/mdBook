@@ -541,6 +541,57 @@ fn redirects_are_emitted_correctly() {
     }
 }
 
+#[test]
+fn edit_url_has_default_src_dir_edit_url() {
+    let temp = DummyBook::new().build().unwrap();
+    let book_toml = r#"
+        [book]
+        title = "implicit"
+
+        [output.html]
+        edit-url-template = "https://github.com/rust-lang/mdBook/edit/master/guide/{path}"    
+        "#;
+
+    write_file(&temp.path(), "book.toml", book_toml.as_bytes()).unwrap();
+
+    let md = MDBook::load(temp.path()).unwrap();
+    md.build().unwrap();
+
+    let index_html = temp.path().join("book").join("index.html");
+    assert_contains_strings(
+        index_html,
+        &vec![
+            r#"href="https://github.com/rust-lang/mdBook/edit/master/guide/src/README.md" title="Suggest an edit""#,
+        ],
+    );
+}
+
+#[test]
+fn edit_url_has_configured_src_dir_edit_url() {
+    let temp = DummyBook::new().build().unwrap();
+    let book_toml = r#"
+        [book]
+        title = "implicit"
+        src = "src2"
+
+        [output.html]
+        edit-url-template = "https://github.com/rust-lang/mdBook/edit/master/guide/{path}"    
+        "#;
+
+    write_file(&temp.path(), "book.toml", book_toml.as_bytes()).unwrap();
+
+    let md = MDBook::load(temp.path()).unwrap();
+    md.build().unwrap();
+
+    let index_html = temp.path().join("book").join("index.html");
+    assert_contains_strings(
+        index_html,
+        &vec![
+            r#"href="https://github.com/rust-lang/mdBook/edit/master/guide/src2/README.md" title="Suggest an edit""#,
+        ],
+    );
+}
+
 fn remove_absolute_components(path: &Path) -> impl Iterator<Item = Component> + '_ {
     path.components().skip_while(|c| match c {
         Component::Prefix(_) | Component::RootDir => true,

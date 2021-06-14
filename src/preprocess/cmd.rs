@@ -109,18 +109,28 @@ impl Preprocessor for CmdPreprocessor {
 
         self.write_input_to_child(&mut child, &book, ctx);
 
-        let output = child
-            .wait_with_output()
-            .with_context(|| "Error waiting for the preprocessor to complete")?;
+        let output = child.wait_with_output().with_context(|| {
+            format!(
+                "Error waiting for the \"{}\" preprocessor to complete",
+                self.name
+            )
+        })?;
 
         trace!("{} exited with output: {:?}", self.cmd, output);
         ensure!(
             output.status.success(),
-            "The preprocessor exited unsuccessfully"
+            format!(
+                "The \"{}\" preprocessor exited unsuccessfully with {} status",
+                self.name, output.status
+            )
         );
 
-        serde_json::from_slice(&output.stdout)
-            .with_context(|| "Unable to parse the preprocessed book")
+        serde_json::from_slice(&output.stdout).with_context(|| {
+            format!(
+                "Unable to parse the preprocessed book from \"{}\" processor",
+                self.name
+            )
+        })
     }
 
     fn supports_renderer(&self, renderer: &str) -> bool {

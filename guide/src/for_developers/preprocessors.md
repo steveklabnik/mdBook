@@ -18,9 +18,9 @@ A new table is added to `book.toml` (e.g. `preprocessor.foo` for the `foo`
 preprocessor) and then `mdbook` will try to invoke the `mdbook-foo` program as
 part of the build process.
 
-While preprocessors can be hard-coded to specify which backend it should be run
-for (e.g. it doesn't make sense for MathJax to be used for non-HTML renderers)
-with the `preprocessor.foo.renderer` key.
+A preprocessor can be hard-coded to specify which backend(s) it should be run
+for with the `preprocessor.foo.renderer` key. For example, it doesn't make sense for 
+[MathJax](../format/mathjax.md) to be used for non-HTML renderers.
 
 ```toml
 [book]

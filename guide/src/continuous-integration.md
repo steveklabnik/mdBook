@@ -133,7 +133,7 @@ stages:
 
 pages:
   stage: deploy
-  image: rust:alpine
+  image: rust
   variables:
     CARGO_HOME: $CI_PROJECT_DIR/cargo
   before_script:

@@ -79,7 +79,7 @@ For more information, such as running it from your favourite editor, please see 
 
 #### Finding Issues with Clippy
 
-Clippy is a code analyser/linter detecting mistakes, and therfore helps to improve your code.
+Clippy is a code analyser/linter detecting mistakes, and therefore helps to improve your code.
 Like formatting your code with `rustfmt`, running clippy regularly and before your Pull Request will
 help us maintain awesome code.
 

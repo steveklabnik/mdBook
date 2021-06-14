@@ -17,5 +17,6 @@ shout-out to them!
 - Matt Ickstadt ([mattico](https://github.com/mattico))
 - Weihang Lo ([@weihanglo](https://github.com/weihanglo))
 - Avision Ho ([@avisionh](https://github.com/avisionh))
+- Vivek Akupatni ([@apatniv](https://github.com/apatniv))
 
 If you feel you're missing from this list, feel free to add yourself in a PR.

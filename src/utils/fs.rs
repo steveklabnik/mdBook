@@ -4,7 +4,7 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Component, Path, PathBuf};
 
-/// Naively replaces any path seperator with a forward-slash '/'
+/// Naively replaces any path separator with a forward-slash '/'
 pub fn normalize_path(path: &str) -> String {
     use std::path::is_separator;
     path.chars()

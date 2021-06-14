@@ -141,7 +141,7 @@ fn render_item(
                 body.push_str(&clean_html(&html_block));
             }
             Event::Start(_) | Event::End(_) | Event::Rule | Event::SoftBreak | Event::HardBreak => {
-                // Insert spaces where HTML output would usually seperate text
+                // Insert spaces where HTML output would usually separate text
                 // to ensure words don't get merged together
                 if in_heading {
                     heading.push(' ');

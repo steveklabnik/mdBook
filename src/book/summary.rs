@@ -173,7 +173,7 @@ struct SummaryParser<'a> {
 /// `Event::End` is encountered which matches the `$delimiter` pattern.
 ///
 /// This is the equivalent of doing
-/// `$stream.take_while(|e| e != $delimeter).collect()` but it allows you to
+/// `$stream.take_while(|e| e != $delimiter).collect()` but it allows you to
 /// use pattern matching and you won't get errors because `take_while()`
 /// moves `$stream` out of self.
 macro_rules! collect_events {
@@ -525,14 +525,19 @@ impl<'a> SummaryParser<'a> {
 
     /// Try to parse the title line.
     fn parse_title(&mut self) -> Option<String> {
-        match self.next_event() {
-            Some(Event::Start(Tag::Heading(1))) => {
-                debug!("Found a h1 in the SUMMARY");
+        loop {
+            match self.next_event() {
+                Some(Event::Start(Tag::Heading(1))) => {
+                    debug!("Found a h1 in the SUMMARY");
 
-                let tags = collect_events!(self.stream, end Tag::Heading(1));
-                Some(stringify_events(tags))
+                    let tags = collect_events!(self.stream, end Tag::Heading(1));
+                    return Some(stringify_events(tags));
+                }
+                // Skip a HTML element such as a comment line.
+                Some(Event::Html(_)) => {}
+                // Otherwise, no title.
+                _ => return None,
             }
-            _ => None,
         }
     }
 }
@@ -971,6 +976,105 @@ mod tests {
             .parse_numbered(&mut 0, &mut SectionNumber::default())
             .unwrap();
 
+        assert_eq!(got, should_be);
+    }
+
+    #[test]
+    fn skip_html_comments() {
+        let src = r#"<!--
+# Title - En
+-->
+# Title - Local
+
+<!--
+[Prefix 00-01 - En](ch00-01.md)
+[Prefix 00-02 - En](ch00-02.md)
+-->
+[Prefix 00-01 - Local](ch00-01.md)
+[Prefix 00-02 - Local](ch00-02.md)
+
+<!--
+## Section Title - En
+-->
+## Section Title - Localized
+
+<!--
+- [Ch 01-00 - En](ch01-00.md)
+    - [Ch 01-01 - En](ch01-01.md)
+    - [Ch 01-02 - En](ch01-02.md)
+-->
+- [Ch 01-00 - Local](ch01-00.md)
+    - [Ch 01-01 - Local](ch01-01.md)
+    - [Ch 01-02 - Local](ch01-02.md)
+
+<!--
+- [Ch 02-00 - En](ch02-00.md)
+-->
+- [Ch 02-00 - Local](ch02-00.md)
+
+<!--
+[Appendix A - En](appendix-01.md)
+[Appendix B - En](appendix-02.md)
+-->`
+[Appendix A - Local](appendix-01.md)
+[Appendix B - Local](appendix-02.md)
+"#;
+
+        let mut parser = SummaryParser::new(src);
+
+        // ---- Title ----
+        let title = parser.parse_title();
+        assert_eq!(title, Some(String::from("Title - Local")));
+
+        // ---- Prefix Chapters ----
+
+        let new_affix_item = |name, location| {
+            SummaryItem::Link(Link {
+                name: String::from(name),
+                location: Some(PathBuf::from(location)),
+                ..Default::default()
+            })
+        };
+
+        let should_be = vec![
+            new_affix_item("Prefix 00-01 - Local", "ch00-01.md"),
+            new_affix_item("Prefix 00-02 - Local", "ch00-02.md"),
+        ];
+
+        let got = parser.parse_affix(true).unwrap();
+        assert_eq!(got, should_be);
+
+        // ---- Numbered Chapters ----
+
+        let new_numbered_item = |name, location, numbers: &[u32], nested_items| {
+            SummaryItem::Link(Link {
+                name: String::from(name),
+                location: Some(PathBuf::from(location)),
+                number: Some(SectionNumber(numbers.to_vec())),
+                nested_items,
+            })
+        };
+
+        let ch01_nested = vec![
+            new_numbered_item("Ch 01-01 - Local", "ch01-01.md", &[1, 1], vec![]),
+            new_numbered_item("Ch 01-02 - Local", "ch01-02.md", &[1, 2], vec![]),
+        ];
+
+        let should_be = vec![
+            new_numbered_item("Ch 01-00 - Local", "ch01-00.md", &[1], ch01_nested),
+            new_numbered_item("Ch 02-00 - Local", "ch02-00.md", &[2], vec![]),
+        ];
+        let got = parser.parse_parts().unwrap();
+        assert_eq!(got, should_be);
+
+        // ---- Suffix Chapters ----
+
+        let should_be = vec![
+            new_affix_item("Appendix A - Local", "appendix-01.md"),
+            new_affix_item("Appendix B - Local", "appendix-02.md"),
+        ];
+
+        let got = parser.parse_affix(false).unwrap();
         assert_eq!(got, should_be);
     }
 }
