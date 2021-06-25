@@ -49,12 +49,16 @@ pub fn make_subcommand<'a, 'b>() -> App<'a, 'b> {
                 .help("Port to use for HTTP connections"),
         )
         .arg_from_usage("-o, --open 'Opens the book server in a web browser'")
+        .arg_from_usage(
+            "--auto-summary 'Automatically generate the book's summary{n}\
+             from the sources directory structure.'",
+        )
 }
 
 // Serve command implementation
 pub fn execute(args: &ArgMatches) -> Result<()> {
     let book_dir = get_book_dir(args);
-    let mut book = MDBook::load(&book_dir)?;
+    let mut book = MDBook::load(&book_dir, args.is_present("auto-summary"))?;
 
     let port = args.value_of("port").unwrap();
     let hostname = args.value_of("hostname").unwrap();
@@ -110,7 +114,7 @@ pub fn execute(args: &ArgMatches) -> Result<()> {
         info!("Building book...");
 
         // FIXME: This area is really ugly because we need to re-set livereload :(
-        let result = MDBook::load(&book_dir).and_then(|mut b| {
+        let result = MDBook::load(&book_dir, args.is_present("auto-summary")).and_then(|mut b| {
             update_config(&mut b);
             b.build()
         });

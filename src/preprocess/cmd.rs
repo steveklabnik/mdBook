@@ -183,7 +183,7 @@ mod tests {
 
     fn guide() -> MDBook {
         let example = Path::new(env!("CARGO_MANIFEST_DIR")).join("guide");
-        MDBook::load(example).unwrap()
+        MDBook::load(example, false).unwrap()
     }
 
     #[test]

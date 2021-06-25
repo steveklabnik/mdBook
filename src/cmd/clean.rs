@@ -18,12 +18,16 @@ pub fn make_subcommand<'a, 'b>() -> App<'a, 'b> {
             "[dir] 'Root directory for the book{n}\
              (Defaults to the Current Directory when omitted)'",
         )
+        .arg_from_usage(
+            "--auto-summary 'Automatically generate the book's summary{n}\
+             from the sources directory structure.'",
+        )
 }
 
 // Clean command implementation
 pub fn execute(args: &ArgMatches) -> mdbook::errors::Result<()> {
     let book_dir = get_book_dir(args);
-    let book = MDBook::load(&book_dir)?;
+    let book = MDBook::load(&book_dir, args.is_present("auto-summary"))?;
 
     let dir_to_remove = match args.value_of("dest-dir") {
         Some(dest_dir) => dest_dir.into(),

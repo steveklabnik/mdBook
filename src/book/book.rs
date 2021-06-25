@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::VecDeque;
 use std::fmt::{self, Display, Formatter};
 use std::fs::{self, File};
@@ -11,19 +12,27 @@ use crate::errors::*;
 /// Load a book into memory from its `src/` directory.
 pub fn load_book<P: AsRef<Path>>(src_dir: P, cfg: &BuildConfig) -> Result<Book> {
     let src_dir = src_dir.as_ref();
-    let summary_md = src_dir.join("SUMMARY.md");
 
-    let mut summary_content = String::new();
-    File::open(&summary_md)
-        .with_context(|| format!("Couldn't open SUMMARY.md in {:?} directory", src_dir))?
-        .read_to_string(&mut summary_content)?;
+    let summary = if !cfg.auto_summary {
+        let summary_md = src_dir.join("SUMMARY.md");
 
-    let summary = parse_summary(&summary_content)
-        .with_context(|| format!("Summary parsing failed for file={:?}", summary_md))?;
+        let mut summary_content = String::new();
+        File::open(&summary_md)
+            .with_context(|| format!("Couldn't open SUMMARY.md in {:?} directory", src_dir))?
+            .read_to_string(&mut summary_content)?;
 
-    if cfg.create_missing {
-        create_missing(&src_dir, &summary).with_context(|| "Unable to create missing chapters")?;
-    }
+        let summary = parse_summary(&summary_content)
+            .with_context(|| format!("Summary parsing failed for file={:?}", summary_md))?;
+
+        if cfg.create_missing {
+            create_missing(&src_dir, &summary)
+                .with_context(|| "Unable to create missing chapters")?;
+        }
+
+        summary
+    } else {
+        Summary::from_sources(src_dir)?
+    };
 
     load_book_from_disk(&summary, src_dir)
 }
@@ -53,7 +62,10 @@ fn create_missing(src_dir: &Path, summary: &Summary) -> Result<()> {
                     let mut f = File::create(&filename).with_context(|| {
                         format!("Unable to create missing file: {}", filename.display())
                     })?;
-                    writeln!(f, "# {}", link.name)?;
+
+                    if let Some(name) = &link.name {
+                        writeln!(f, "# {}", name)?;
+                    }
                 }
             }
 
@@ -253,7 +265,7 @@ fn load_chapter<P: AsRef<Path>>(
     let src_dir = src_dir.as_ref();
 
     let mut ch = if let Some(ref link_location) = link.location {
-        debug!("Loading {} ({})", link.name, link_location.display());
+        debug!("Loading {}", link);
 
         let location = if link_location.is_absolute() {
             link_location.clone()
@@ -265,9 +277,8 @@ fn load_chapter<P: AsRef<Path>>(
             .with_context(|| format!("Chapter file not found, {}", link_location.display()))?;
 
         let mut content = String::new();
-        f.read_to_string(&mut content).with_context(|| {
-            format!("Unable to read \"{}\" ({})", link.name, location.display())
-        })?;
+        f.read_to_string(&mut content)
+            .with_context(|| format!("Unable to read {}", link))?;
 
         if content.as_bytes().starts_with(b"\xef\xbb\xbf") {
             content.replace_range(..3, "");
@@ -277,16 +288,21 @@ fn load_chapter<P: AsRef<Path>>(
             .strip_prefix(&src_dir)
             .expect("Chapters are always inside a book");
 
-        Chapter::new(&link.name, content, stripped, parent_names.clone())
+        let name = match &link.name {
+            Some(name) => Cow::Borrowed(name.as_str()),
+            None => Cow::Owned(read_chapter_title(&content)),
+        };
+
+        Chapter::new(&name, content, stripped, parent_names.clone())
     } else {
-        Chapter::new_draft(&link.name, parent_names.clone())
+        Chapter::new_draft(link.name.as_ref().unwrap().as_str(), parent_names.clone())
     };
 
     let mut sub_item_parents = parent_names;
 
     ch.number = link.number.clone();
 
-    sub_item_parents.push(link.name.clone());
+    sub_item_parents.push(ch.name.clone());
     let sub_items = link
         .nested_items
         .iter()
@@ -296,6 +312,23 @@ fn load_chapter<P: AsRef<Path>>(
     ch.sub_items = sub_items;
 
     Ok(ch)
+}
+
+/// Read a chapter title from its source file.
+fn read_chapter_title(content: &str) -> String {
+    let mut pulldown_parser = pulldown_cmark::Parser::new(content);
+
+    while let Some(event) = pulldown_parser.next() {
+        if let pulldown_cmark::Event::Start(pulldown_cmark::Tag::Heading(1)) = event {
+            if let Some(pulldown_cmark::Event::Text(title)) = pulldown_parser.next() {
+                return title.to_string();
+            } else {
+                break;
+            }
+        }
+    }
+
+    "Untitled".to_string()
 }
 
 /// A depth-first iterator over the items in a book.
@@ -604,7 +637,7 @@ And here is some \
         let (_, temp) = dummy_link();
         let summary = Summary {
             numbered_chapters: vec![SummaryItem::Link(Link {
-                name: String::from("Empty"),
+                name: Some(String::from("Empty")),
                 location: Some(PathBuf::from("")),
                 ..Default::default()
             })],
@@ -624,7 +657,7 @@ And here is some \
 
         let summary = Summary {
             numbered_chapters: vec![SummaryItem::Link(Link {
-                name: String::from("nested"),
+                name: Some(String::from("nested")),
                 location: Some(dir),
                 ..Default::default()
             })],

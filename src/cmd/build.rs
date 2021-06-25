@@ -17,12 +17,16 @@ pub fn make_subcommand<'a, 'b>() -> App<'a, 'b> {
              (Defaults to the Current Directory when omitted)'",
         )
         .arg_from_usage("-o, --open 'Opens the compiled book in a web browser'")
+        .arg_from_usage(
+            "--auto-summary 'Automatically generate the book's summary{n}\
+             from the sources directory structure.'",
+        )
 }
 
 // Build command implementation
 pub fn execute(args: &ArgMatches) -> Result<()> {
     let book_dir = get_book_dir(args);
-    let mut book = MDBook::load(&book_dir)?;
+    let mut book = MDBook::load(&book_dir, args.is_present("auto-summary"))?;
 
     if let Some(dest_dir) = args.value_of("dest-dir") {
         book.config.build.build_dir = dest_dir.into();

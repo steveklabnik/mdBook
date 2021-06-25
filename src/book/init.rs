@@ -81,7 +81,7 @@ impl BookBuilder {
 
         self.write_book_toml()?;
 
-        match MDBook::load(&self.root) {
+        match MDBook::load(&self.root, false) {
             Ok(book) => Ok(book),
             Err(e) => {
                 error!("{}", e);
