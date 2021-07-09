@@ -21,7 +21,7 @@ Will render as
 ```rust
 # fn main() {
     let x = 5;
-    let y = 7;
+    let y = 6;
 
     println!("{}", x + y);
 # }

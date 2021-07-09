@@ -188,13 +188,13 @@ Enable it by adding an empty table to your `book.toml` as follows:
 There are no configuration options for the Markdown renderer at this time;
 only whether it is enabled or disabled.
 
-See [the preprocessors documentation](#configuring-preprocessors) for how to
+See [the preprocessors documentation](preprocessors.md) for how to
 specify which preprocessors should run before the Markdown renderer.
 
 ### Custom Renderers
 
 A custom renderer can be enabled by adding a `[output.foo]` table to your
-`book.toml`. Similar to [preprocessors](#configuring-preprocessors) this will
+`book.toml`. Similar to [preprocessors](preprocessors.md) this will
 instruct `mdbook` to pass a representation of the book to `mdbook-foo` for
 rendering. See the [alternative backends] chapter for more detail.
 

@@ -63,8 +63,8 @@ Options for the Rust language, relevant to running tests and playground
 integration.
 
 - **edition**: Rust edition to use by default for the code snippets. Default
-  is "2015". Individual code blocks can be controlled with the `edition2015`
-  or `edition2018` annotations, such as:
+  is "2015". Individual code blocks can be controlled with the `edition2015`, 
+  `edition2018` or `edition2021` annotations, such as:
 
   ~~~text
   ```rust,edition2015

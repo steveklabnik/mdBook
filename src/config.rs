@@ -467,6 +467,9 @@ pub struct RustConfig {
 #[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
 /// Rust edition to use for the code.
 pub enum RustEdition {
+    /// The 2021 edition of Rust
+    #[serde(rename = "2021")]
+    E2021,
     /// The 2018 edition of Rust
     #[serde(rename = "2018")]
     E2018,
@@ -849,6 +852,26 @@ mod tests {
 
         let rust_should_be = RustConfig {
             edition: Some(RustEdition::E2018),
+        };
+
+        let got = Config::from_str(src).unwrap();
+        assert_eq!(got.rust, rust_should_be);
+    }
+
+    #[test]
+    fn edition_2021() {
+        let src = r#"
+        [book]
+        title = "mdBook Documentation"
+        description = "Create book from markdown files. Like Gitbook but implemented in Rust"
+        authors = ["Mathieu David"]
+        src = "./source"
+        [rust]
+        edition = "2021"
+        "#;
+
+        let rust_should_be = RustConfig {
+            edition: Some(RustEdition::E2021),
         };
 
         let got = Config::from_str(src).unwrap();

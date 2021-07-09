@@ -52,3 +52,19 @@ directory called `theme` in your source directory so that you can modify it.
 
 The theme is selectively overwritten, this means that if you don't want to
 overwrite a specific file, just delete it and the default file will be used.
+
+#### --title
+
+Specify a title for the book. If not supplied, an interactive prompt will ask for 
+a title. 
+
+```bash
+mdbook init --title="my amazing book"
+```
+
+#### --ignore
+
+Create a `.gitignore` file configured to ignore the `book` directory created when [building] a book. 
+If not supplied, an interactive prompt will ask whether it should be created.
+
+[building]: build.md

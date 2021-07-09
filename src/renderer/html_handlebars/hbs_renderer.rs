@@ -861,13 +861,15 @@ fn add_playground_pre(
                 {
                     let contains_e2015 = classes.contains("edition2015");
                     let contains_e2018 = classes.contains("edition2018");
-                    let edition_class = if contains_e2015 || contains_e2018 {
+                    let contains_e2021 = classes.contains("edition2021");
+                    let edition_class = if contains_e2015 || contains_e2018 || contains_e2021 {
                         // the user forced edition, we should not overwrite it
                         ""
                     } else {
                         match edition {
                             Some(RustEdition::E2015) => " edition2015",
                             Some(RustEdition::E2018) => " edition2018",
+                            Some(RustEdition::E2021) => " edition2021",
                             None => "",
                         }
                     };
@@ -1085,6 +1087,30 @@ mod tests {
                     ..Playground::default()
                 },
                 Some(RustEdition::E2018),
+            );
+            assert_eq!(&*got, *should_be);
+        }
+    }
+    #[test]
+    fn add_playground_edition2021() {
+        let inputs = [
+            ("<code class=\"language-rust\">x()</code>",
+             "<pre class=\"playground\"><code class=\"language-rust edition2021\">\n<span class=\"boring\">#![allow(unused)]\n</span><span class=\"boring\">fn main() {\n</span>x()\n<span class=\"boring\">}\n</span></code></pre>"),
+            ("<code class=\"language-rust\">fn main() {}</code>",
+             "<pre class=\"playground\"><code class=\"language-rust edition2021\">fn main() {}\n</code></pre>"),
+            ("<code class=\"language-rust edition2015\">fn main() {}</code>",
+             "<pre class=\"playground\"><code class=\"language-rust edition2015\">fn main() {}\n</code></pre>"),
+            ("<code class=\"language-rust edition2018\">fn main() {}</code>",
+             "<pre class=\"playground\"><code class=\"language-rust edition2018\">fn main() {}\n</code></pre>"),
+        ];
+        for (src, should_be) in &inputs {
+            let got = add_playground_pre(
+                src,
+                &Playground {
+                    editable: true,
+                    ..Playground::default()
+                },
+                Some(RustEdition::E2021),
             );
             assert_eq!(&*got, *should_be);
         }

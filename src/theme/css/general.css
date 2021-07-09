@@ -182,3 +182,7 @@ blockquote {
     fill: currentColor;
     margin-bottom: -0.1em;
 }
+
+.result-no-output {
+    font-style: italic;
+}
