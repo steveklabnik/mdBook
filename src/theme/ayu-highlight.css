@@ -11,6 +11,12 @@ Original by Dempfi (https://github.com/dempfi/ayu)
   padding: 0.5em;
 }
 
+@media (max-width: 640px) {
+  .hljs {
+    padding-top: 2em;
+  }
+}
+
 .hljs-comment,
 .hljs-quote {
   color: #5c6773;

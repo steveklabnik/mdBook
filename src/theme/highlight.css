@@ -64,6 +64,12 @@
   padding: 0.5em;
 }
 
+@media (max-width: 640px) {
+  .hljs {
+    padding-top: 2em;
+  }
+}
+
 .hljs-emphasis {
   font-style: italic;
 }
