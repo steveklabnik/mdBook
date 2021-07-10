@@ -79,7 +79,7 @@
 .hljs {
   display: block;
   overflow-x: auto;
-  background: #1d1f21;
+  background: var(--code-block-bg);
   color: #c5c8c6;
   padding: 0.5em;
   -webkit-text-size-adjust: none;
