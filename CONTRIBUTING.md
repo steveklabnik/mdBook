@@ -6,7 +6,6 @@ If you have come here to learn how to contribute to mdBook, we have some tips fo
 
 First of all, don't hesitate to ask questions!
 Use the [issue tracker](https://github.com/rust-lang/mdBook/issues), no question is too simple.
-If we don't respond in a couple of days, ping us @Michael-F-Bryan, @budziq, @steveklabnik, @frewsxcv it might just be that we forgot. :wink:
 
 ### Issues to work on
 
@@ -46,7 +45,7 @@ mdBook builds on stable Rust, if you want to build mdBook from source, here are 
 0. Navigate into the newly created `mdBook` directory
 0. Run `cargo build`
 
-The resulting binary can be found in `mdBook/target/debug/` under the name `mdBook` or `mdBook.exe`.
+The resulting binary can be found in `mdBook/target/debug/` under the name `mdbook` or `mdbook.exe`.
 
 ### Code Quality
 
@@ -106,3 +105,13 @@ and [rustfmt](https://github.com/rust-lang/rustfmt) on the code first.
 This is not a requirement though and will never block a pull-request from being merged.
 
 That's it, happy contributions! :tada: :tada: :tada:
+
+## Browser compatibility and testing
+
+Currently we don't have a strict browser compatibility matrix due to our limited resources.
+We generally strive to keep mdBook compatible with a relatively recent browser on all of the most major platforms.
+That is, supporting Chrome, Safari, Firefox, Edge on Windows, macOS, Linux, iOS, and Android.
+If possible, do your best to avoid breaking older browser releases.
+
+Any change to the HTML or styling is encouraged to manually check on as many browsers and platforms that you can.
+Unfortunately at this time we don't have any automated UI or browser testing, so your assistance in testing is appreciated.
