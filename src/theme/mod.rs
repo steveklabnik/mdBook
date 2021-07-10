@@ -29,6 +29,7 @@ pub static TOMORROW_NIGHT_CSS: &[u8] = include_bytes!("tomorrow-night.css");
 pub static HIGHLIGHT_CSS: &[u8] = include_bytes!("highlight.css");
 pub static AYU_HIGHLIGHT_CSS: &[u8] = include_bytes!("ayu-highlight.css");
 pub static CLIPBOARD_JS: &[u8] = include_bytes!("clipboard.min.js");
+pub static MATHJAX_JS: &[u8] = include_bytes!("mathjax.js");
 pub static FONT_AWESOME: &[u8] = include_bytes!("FontAwesome/css/font-awesome.min.css");
 pub static FONT_AWESOME_EOT: &[u8] = include_bytes!("FontAwesome/fonts/fontawesome-webfont.eot");
 pub static FONT_AWESOME_SVG: &[u8] = include_bytes!("FontAwesome/fonts/fontawesome-webfont.svg");
@@ -62,6 +63,7 @@ pub struct Theme {
     pub ayu_highlight_css: Vec<u8>,
     pub highlight_js: Vec<u8>,
     pub clipboard_js: Vec<u8>,
+    pub mathjax_js: Vec<u8>,
 }
 
 impl Theme {
@@ -93,6 +95,7 @@ impl Theme {
                 ),
                 (theme_dir.join("highlight.js"), &mut theme.highlight_js),
                 (theme_dir.join("clipboard.min.js"), &mut theme.clipboard_js),
+                (theme_dir.join("mathjax.js"), &mut theme.mathjax_js),
                 (theme_dir.join("highlight.css"), &mut theme.highlight_css),
                 (
                     theme_dir.join("tomorrow-night.css"),
@@ -161,6 +164,7 @@ impl Default for Theme {
             ayu_highlight_css: AYU_HIGHLIGHT_CSS.to_owned(),
             highlight_js: HIGHLIGHT_JS.to_owned(),
             clipboard_js: CLIPBOARD_JS.to_owned(),
+            mathjax_js: MATHJAX_JS.to_owned(),
         }
     }
 }
@@ -219,6 +223,7 @@ mod tests {
             "highlight.css",
             "ayu-highlight.css",
             "clipboard.min.js",
+            "mathjax.js",
         ];
 
         let temp = TempFileBuilder::new().prefix("mdbook-").tempdir().unwrap();
@@ -248,6 +253,7 @@ mod tests {
             ayu_highlight_css: Vec::new(),
             highlight_js: Vec::new(),
             clipboard_js: Vec::new(),
+            mathjax_js: Vec::new(),
         };
 
         assert_eq!(got, empty);

@@ -233,6 +233,9 @@ impl HtmlHandlebars {
         write_file(destination, "ayu-highlight.css", &theme.ayu_highlight_css)?;
         write_file(destination, "highlight.js", &theme.highlight_js)?;
         write_file(destination, "clipboard.min.js", &theme.clipboard_js)?;
+        if html_config.mathjax_support {
+            write_file(destination, "mathjax.js", &theme.mathjax_js)?;
+        }
         write_file(
             destination,
             "FontAwesome/css/font-awesome.css",
