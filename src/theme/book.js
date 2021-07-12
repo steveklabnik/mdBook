@@ -92,6 +92,7 @@ function playground_text(playground) {
 
         if (all_available) {
             play_button.classList.remove("hidden");
+            play_button.hidden = false;
         } else {
             play_button.classList.add("hidden");
         }
@@ -186,25 +187,24 @@ function playground_text(playground) {
 
         var buttons = document.createElement('div');
         buttons.className = 'buttons';
-        buttons.innerHTML = "<button class=\"fa fa-eye\" title=\"Show hidden lines\" aria-label=\"Show hidden lines\"></button>";
+        buttons.innerHTML = "<button title=\"Show hidden lines\" aria-label=\"Show hidden lines\"></button>";
+        buttons.firstChild.innerHTML = document.getElementById('fa-eye').innerHTML;
 
         // add expand button
         var pre_block = block.parentNode;
         pre_block.insertBefore(buttons, pre_block.firstChild);
 
-        pre_block.querySelector('.buttons').addEventListener('click', function (e) {
-            if (e.target.classList.contains('fa-eye')) {
-                e.target.classList.remove('fa-eye');
-                e.target.classList.add('fa-eye-slash');
-                e.target.title = 'Hide lines';
-                e.target.setAttribute('aria-label', e.target.title);
+        buttons.firstChild.addEventListener('click', function (e) {
+            if (this.title === "Show hidden lines") {
+                this.innerHTML = document.getElementById('fa-eye-slash').innerHTML;
+                this.title = 'Hide lines';
+                this.setAttribute('aria-label', e.target.title);
 
                 block.classList.remove('hide-boring');
-            } else if (e.target.classList.contains('fa-eye-slash')) {
-                e.target.classList.remove('fa-eye-slash');
-                e.target.classList.add('fa-eye');
-                e.target.title = 'Show hidden lines';
-                e.target.setAttribute('aria-label', e.target.title);
+            } else if (this.title === "Hide lines") {
+                this.innerHTML = document.getElementById('fa-eye').innerHTML;
+                this.title = 'Show hidden lines';
+                this.setAttribute('aria-label', e.target.title);
 
                 block.classList.add('hide-boring');
             }
@@ -223,10 +223,11 @@ function playground_text(playground) {
                 }
 
                 var clipButton = document.createElement('button');
-                clipButton.className = 'fa fa-copy clip-button';
+                clipButton.className = 'clip-button';
                 clipButton.title = 'Copy to clipboard';
                 clipButton.setAttribute('aria-label', clipButton.title);
                 clipButton.innerHTML = '<i class=\"tooltiptext\"></i>';
+                clipButton.innerHTML += document.getElementById('fa-copy').innerHTML;
 
                 buttons.insertBefore(clipButton, buttons.firstChild);
             }
@@ -244,10 +245,11 @@ function playground_text(playground) {
         }
 
         var runCodeButton = document.createElement('button');
-        runCodeButton.className = 'fa fa-play play-button';
+        runCodeButton.className = 'play-button';
         runCodeButton.hidden = true;
         runCodeButton.title = 'Run this code';
         runCodeButton.setAttribute('aria-label', runCodeButton.title);
+        runCodeButton.innerHTML = document.getElementById('fa-play').innerHTML;
 
         buttons.insertBefore(runCodeButton, buttons.firstChild);
         runCodeButton.addEventListener('click', function (e) {
@@ -256,8 +258,9 @@ function playground_text(playground) {
 
         if (window.playground_copyable) {
             var copyCodeClipboardButton = document.createElement('button');
-            copyCodeClipboardButton.className = 'fa fa-copy clip-button';
+            copyCodeClipboardButton.className = 'clip-button';
             copyCodeClipboardButton.innerHTML = '<i class="tooltiptext"></i>';
+            copyCodeClipboardButton.innerHTML += document.getElementById('fa-copy').innerHTML;
             copyCodeClipboardButton.title = 'Copy to clipboard';
             copyCodeClipboardButton.setAttribute('aria-label', copyCodeClipboardButton.title);
 
@@ -267,9 +270,10 @@ function playground_text(playground) {
         let code_block = pre_block.querySelector("code");
         if (window.ace && code_block.classList.contains("editable")) {
             var undoChangesButton = document.createElement('button');
-            undoChangesButton.className = 'fa fa-history reset-button';
+            undoChangesButton.className = 'reset-button';
             undoChangesButton.title = 'Undo changes';
             undoChangesButton.setAttribute('aria-label', undoChangesButton.title);
+            undoChangesButton.innerHTML += document.getElementById('fa-history').innerHTML;
 
             buttons.insertBefore(undoChangesButton, buttons.firstChild);
 
@@ -572,12 +576,12 @@ function playground_text(playground) {
 
     function hideTooltip(elem) {
         elem.firstChild.innerText = "";
-        elem.className = 'fa fa-copy clip-button';
+        elem.className = 'clip-button';
     }
 
     function showTooltip(elem, msg) {
         elem.firstChild.innerText = msg;
-        elem.className = 'fa fa-copy tooltipped';
+        elem.className = 'tooltipped';
     }
 
     var clipboardSnippets = new ClipboardJS('.clip-button', {

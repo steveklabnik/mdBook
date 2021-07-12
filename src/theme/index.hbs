@@ -34,7 +34,6 @@
         {{/if}}
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="{{ path_to_root }}FontAwesome/css/font-awesome.css">
         {{#if copy_fonts}}
         <link rel="stylesheet" href="{{ path_to_root }}fonts/fonts.css">
         {{/if}}
@@ -116,10 +115,10 @@
                 <div id="menu-bar" class="menu-bar sticky bordered">
                     <div class="left-buttons">
                         <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                            {{fa "solid" "bars"}}
                         </button>
                         <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                            {{fa "solid" "paint-brush"}}
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
                             <li role="none"><button role="menuitem" class="theme" id="light">{{ theme_option "Light" }}</button></li>
@@ -130,7 +129,7 @@
                         </ul>
                         {{#if search_enabled}}
                         <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
-                            <i class="fa fa-search"></i>
+                            {{fa "solid" "search"}}
                         </button>
                         {{/if}}
                     </div>
@@ -140,12 +139,12 @@
                     <div class="right-buttons">
                         {{#if print_enable}}
                         <a href="{{ path_to_root }}print.html" title="Print this book" aria-label="Print this book">
-                            <i id="print-button" class="fa fa-print"></i>
+                            {{fa "solid" "print" "print-button"}}
                         </a>
                         {{/if}}
                         {{#if git_repository_url}}
                         <a href="{{git_repository_url}}" title="Git repository" aria-label="Git repository">
-                            <i id="git-repository-button" class="fa {{git_repository_icon}}"></i>
+                            {{fa git_repository_icon_class git_repository_icon}}
                         </a>
                         {{/if}}
                         {{#if git_repository_edit_url}}
@@ -188,13 +187,13 @@
                         <!-- Mobile navigation buttons -->
                         {{#previous}}
                             <a rel="prev" href="{{ path_to_root }}{{link}}" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                                <i class="fa fa-angle-left"></i>
+                                {{fa "solid" "angle-left"}}
                             </a>
                         {{/previous}}
 
                         {{#next}}
                             <a rel="next" href="{{ path_to_root }}{{link}}" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                                {{fa "solid" "angle-right"}}
                             </a>
                         {{/next}}
 
@@ -206,18 +205,24 @@
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
                 {{#previous}}
                     <a rel="prev" href="{{ path_to_root }}{{link}}" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
+                            {{fa "solid" "angle-left"}}
                     </a>
                 {{/previous}}
 
                 {{#next}}
                     <a rel="next" href="{{ path_to_root }}{{link}}" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                            {{fa "solid" "angle-right"}}
                     </a>
                 {{/next}}
             </nav>
 
         </div>
+
+        <template id=fa-eye>{{fa "solid" "eye"}}</template>
+        <template id=fa-eye-slash>{{fa "solid" "eye-slash"}}</template>
+        <template id=fa-copy>{{fa "regular" "copy"}}</template>
+        <template id=fa-play>{{fa "solid" "play"}}</template>
+        <template id=fa-history>{{fa "solid" "history"}}</template>
 
         {{#if livereload}}
         <!-- Livereload script (if served using the cli tool) -->

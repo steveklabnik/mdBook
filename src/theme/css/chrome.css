@@ -51,7 +51,7 @@ a > .hljs {
 #menu-bar.bordered {
     border-bottom-color: var(--table-border-color);
 }
-#menu-bar i, #menu-bar .icon-button {
+#menu-bar .fa-svg, #menu-bar .icon-button {
     position: relative;
     padding: 0 8px;
     z-index: 10;
@@ -60,7 +60,7 @@ a > .hljs {
     transition: color 0.5s;
 }
 @media only screen and (max-width: 420px) {
-    #menu-bar i, #menu-bar .icon-button {
+    #menu-bar .fa-svg, #menu-bar .icon-button {
         padding: 0 5px;
     }
 }
@@ -71,7 +71,7 @@ a > .hljs {
     padding: 0;
     color: inherit;
 }
-.icon-button i {
+.icon-button .fa-svg {
     margin: 0;
 }
 
@@ -113,14 +113,14 @@ a > .hljs {
 .mobile-nav-chapters,
 .mobile-nav-chapters:visited,
 .menu-bar .icon-button,
-.menu-bar a i {
+.menu-bar a .fa-svg {
     color: var(--icons);
 }
 
-.menu-bar i:hover,
+.menu-bar .fa-svg:hover,
 .menu-bar .icon-button:hover,
 .nav-chapters:hover,
-.mobile-nav-chapters i:hover {
+.mobile-nav-chapters .fa-svg:hover {
     color: var(--icons-hover);
 }
 
@@ -217,7 +217,7 @@ pre > .buttons {
 pre > .buttons :hover {
     color: var(--sidebar-active);
 }
-pre > .buttons i {
+pre > .buttons .fa-svg {
     margin-left: 8px;
 }
 pre > .buttons button {

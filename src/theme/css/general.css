@@ -176,6 +176,13 @@ blockquote {
     font-weight: bold;
 }
 
+.fa-svg svg {
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+    margin-bottom: -0.1em;
+}
+
 .result-no-output {
     font-style: italic;
 }
