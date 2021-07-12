@@ -24,7 +24,6 @@ handlebars = "4.0"
 lazy_static = "1.0"
 log = "0.4"
 memchr = "2.0"
-open = "1.1"
 pulldown-cmark = "0.7.0"
 regex = "1.0.0"
 serde = "1.0"
@@ -47,6 +46,9 @@ warp = { version = "0.2.2", default-features = false, features = ["websocket"], 
 elasticlunr-rs = { version = "2.3", optional = true, default-features = false }
 ammonia = { version = "3", optional = true }
 
+# Open feature
+open = { version = "1.1", optional = true }
+
 [dev-dependencies]
 select = "0.5"
 semver = "0.11.0"
@@ -54,7 +56,7 @@ pretty_assertions = "0.6"
 walkdir = "2.0"
 
 [features]
-default = ["watch", "serve", "search"]
+default = ["watch", "serve", "search", "open"]
 watch = ["notify", "gitignore"]
 serve = ["futures-util", "tokio", "warp"]
 search = ["elasticlunr-rs", "ammonia"]

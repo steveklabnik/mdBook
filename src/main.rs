@@ -132,7 +132,13 @@ fn get_book_dir(args: &ArgMatches) -> PathBuf {
 }
 
 fn open<P: AsRef<OsStr>>(path: P) {
+    #[cfg(feature = "open")]
     if let Err(e) = open::that(path) {
         error!("Error opening web browser: {}", e);
+    }
+    #[cfg(not(feature = "open"))]
+    {
+        let _ = path;
+        error!("The browser open feature is not enabled");
     }
 }
