@@ -103,11 +103,14 @@ Will render as
 # }
 ```
 
-**At the moment, this only works for code examples that are annotated with
-`rust`. Because it would collide with semantics of some programming languages.
-In the future, we want to make this configurable through the `book.toml` so that
-everyone can benefit from it.**
+Hiding is only enabled by default for code examples with the language `rust`,
+since it collides with ordinary use of `#` in some other programming languages.
+To enable code hiding for a specific non-Rust code block, append `,hidelines`
+after the language selector:
 
+~~~markdown
+```haskell,hidelines
+~~~
 
 ## Improve default theme
 

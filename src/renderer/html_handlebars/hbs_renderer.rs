@@ -877,6 +877,8 @@ fn add_playground_pre(
                 } else {
                     format!("<code class=\"{}\">{}</code>", classes, hide_lines(code))
                 }
+            } else if classes.contains("hidelines") {
+                format!("<code class=\"{}\">{}</code>", classes, hide_lines(code))
             } else {
                 // not language-rust, so no-op
                 text.to_owned()
