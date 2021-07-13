@@ -34,8 +34,15 @@ command = "python3 /path/to/foo.py"
 renderer = ["html", "epub"]
 ```
 
-In typical unix style, all inputs to the plugin will be written to `stdin` as
-JSON and `mdbook` will read from `stdout` if it is expecting output.
+Once the preprocessor has been defined and the build process starts, mdBook executes the command defined in the `preprocessor.foo.command` key twice.
+The first time it runs the preprocessor to determine if it supports the given renderer.
+mdBook passes two arguments to the process: the first argument is the string `supports` and the second argument is the renderer name.
+The preprocessor should exit with a status code 0 if it supports the given renderer, or return a non-zero exit code if it does not.
+
+If the preprocessor supports the renderer, then mdbook runs it a second time, passing JSON data into stdin.
+The JSON consists of an array of `[context, book]` where `context` is the serialized object [`PreprocessorContext`] and `book` is a [`Book`] object containing the content of the book.
+
+The preprocessor should return the JSON format of the [`Book`] object to stdout, with any modifications it wishes to perform.
 
 The easiest way to get started is by creating your own implementation of the
 `Preprocessor` trait (e.g. in `lib.rs`) and then creating a shell binary which
@@ -80,7 +87,7 @@ without accidentally breaking the document.
 ```rust
 fn remove_emphasis(
     num_removed_items: &mut usize,
-    chapter: &mut Chapter,
+	    chapter: &mut Chapter,
 ) -> Result<String> {
     let mut buf = String::with_capacity(chapter.content.len());
 
@@ -105,6 +112,33 @@ fn remove_emphasis(
 ```
 
 For everything else, have a look [at the complete example][example].
+
+## implementing a preprocessor with a different language
+The fact that mdBook utilizes stdin and stdout to communicate with the preprocessors makes it easy to implement them in a language other than Rust.
+The following code shows how to implement a simple preprocessor in python, which will modify the content of the first chapter.
+The example will follow the configuration shown above with `preprocessor.foo.command` actually pointing to a  python script. The code of said script is below:
+
+```python
+import json
+import sys
+
+
+if __name__ == '__main__':
+    if len(sys.argv) > 1: # we check if we received any argument
+        if sys.argv[1] == "supports": 
+            # then we are good to return an exit status code of 0, since the other argument will just be the renderer's name
+            sys.exit(0)
+
+    # we will load both the context and the book representations from stdin
+    stdin = sys.stdin
+    context, book = json.load(stdin)
+    # and now, we can just modify the content of the first chapter
+    book['sections'][0]['Chapter']['content'] = '# Hello'
+    # we are done with the book's modification, we can just print it to stdout, 
+    print(json.dumps(book))
+```
+
+
 
 [preprocessor-docs]: https://docs.rs/mdbook/latest/mdbook/preprocess/trait.Preprocessor.html
 [pc]: https://crates.io/crates/pulldown-cmark
