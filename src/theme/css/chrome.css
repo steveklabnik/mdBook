@@ -212,6 +212,7 @@ pre > .buttons {
     top: 5px;
 
     color: var(--sidebar-fg);
+    background: var(--code-block-bg);
     cursor: pointer;
 }
 pre > .buttons :hover {
