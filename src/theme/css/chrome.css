@@ -59,6 +59,9 @@ a > .hljs {
     cursor: pointer;
     transition: color 0.5s;
 }
+.menu-bar button:focus {
+    outline: 0;
+}
 @media only screen and (max-width: 420px) {
     #menu-bar i, #menu-bar .icon-button {
         padding: 0 5px;
