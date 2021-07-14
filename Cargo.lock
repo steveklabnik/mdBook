@@ -818,6 +818,7 @@ dependencies = [
  "open",
  "pretty_assertions",
  "pulldown-cmark",
+ "pulldown-cmark-to-cmark",
  "regex",
  "select",
  "semver",
@@ -1182,6 +1183,15 @@ dependencies = [
  "getopts",
  "memchr",
  "unicase",
+]
+
+[[package]]
+name = "pulldown-cmark-to-cmark"
+version = "5.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32accf4473121d8c0b508ca5673363703762d6cc59cf25af1df48f653346f736"
+dependencies = [
+ "pulldown-cmark",
 ]
 
 [[package]]
