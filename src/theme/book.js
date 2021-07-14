@@ -580,10 +580,23 @@ function playground_text(playground) {
         elem.className = 'fa fa-copy tooltipped';
     }
 
+    // this will remove '$', '>' and '#' leading characters
+    // from clipboard of console snippets
+    function removeLeadingChars(str) {
+        var leading_chars_expr = /^(\$|\>|\#)\s/gm;
+        return str.replace(leading_chars_expr, '');
+    }
+
     var clipboardSnippets = new ClipboardJS('.clip-button', {
         text: function (trigger) {
             hideTooltip(trigger);
             let playground = trigger.closest("pre");
+            
+            // evaluates if the code block is of type console
+            let isConsole = playground.querySelector("code").classList.contains("language-console");
+            if (isConsole === true)
+                return removeLeadingChars(playground_text(playground));
+             
             return playground_text(playground);
         }
     });
