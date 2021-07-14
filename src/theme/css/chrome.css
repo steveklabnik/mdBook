@@ -172,7 +172,7 @@ a > .hljs {
 
 .next {
     float: right;
-    right: var(--page-padding);
+    right: 0;
 }
 
 @media only screen and (max-width: 1080px) {
