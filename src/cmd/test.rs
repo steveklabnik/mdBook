@@ -25,6 +25,10 @@ pub fn make_subcommand<'a, 'b>() -> App<'a, 'b> {
             .multiple(true)
             .empty_values(false)
             .help("A comma-separated list of directories to add to {n}the crate search path when building tests"))
+        .arg_from_usage(
+            "--auto-summary 'Automatically generate the book's summary{n}\
+                from the sources directory structure.'"
+        )
 }
 
 // test command implementation
@@ -34,7 +38,7 @@ pub fn execute(args: &ArgMatches) -> Result<()> {
         .map(std::iter::Iterator::collect)
         .unwrap_or_default();
     let book_dir = get_book_dir(args);
-    let mut book = MDBook::load(&book_dir)?;
+    let mut book = MDBook::load(&book_dir, args.is_present("auto-summary"))?;
 
     if let Some(dest_dir) = args.value_of("dest-dir") {
         book.config.build.build_dir = dest_dir.into();

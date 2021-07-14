@@ -444,6 +444,8 @@ pub struct BuildConfig {
     /// Should the default preprocessors always be used when they are
     /// compatible with the renderer?
     pub use_default_preprocessors: bool,
+    /// Automatically build the book's summary from the directory structure.
+    pub auto_summary: bool,
 }
 
 impl Default for BuildConfig {
@@ -452,6 +454,7 @@ impl Default for BuildConfig {
             build_dir: PathBuf::from("book"),
             create_missing: true,
             use_default_preprocessors: true,
+            auto_summary: false,
         }
     }
 }
@@ -769,6 +772,7 @@ mod tests {
             build_dir: PathBuf::from("outputs"),
             create_missing: false,
             use_default_preprocessors: true,
+            auto_summary: false,
         };
         let rust_should_be = RustConfig { edition: None };
         let playground_should_be = Playground {
@@ -962,6 +966,7 @@ mod tests {
             build_dir: PathBuf::from("my-book"),
             create_missing: true,
             use_default_preprocessors: true,
+            auto_summary: false,
         };
 
         let html_should_be = HtmlConfig {

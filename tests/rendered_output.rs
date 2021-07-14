@@ -41,7 +41,7 @@ const TOC_SECOND_LEVEL: &[&str] = &[
 #[test]
 fn build_the_dummy_book() {
     let temp = DummyBook::new().build().unwrap();
-    let md = MDBook::load(temp.path()).unwrap();
+    let md = MDBook::load(temp.path(), false).unwrap();
 
     md.build().unwrap();
 }
@@ -49,7 +49,7 @@ fn build_the_dummy_book() {
 #[test]
 fn by_default_mdbook_generates_rendered_content_in_the_book_directory() {
     let temp = DummyBook::new().build().unwrap();
-    let md = MDBook::load(temp.path()).unwrap();
+    let md = MDBook::load(temp.path(), false).unwrap();
 
     assert!(!temp.path().join("book").exists());
     md.build().unwrap();
@@ -62,7 +62,7 @@ fn by_default_mdbook_generates_rendered_content_in_the_book_directory() {
 #[test]
 fn make_sure_bottom_level_files_contain_links_to_chapters() {
     let temp = DummyBook::new().build().unwrap();
-    let md = MDBook::load(temp.path()).unwrap();
+    let md = MDBook::load(temp.path(), false).unwrap();
     md.build().unwrap();
 
     let dest = temp.path().join("book");
@@ -84,7 +84,7 @@ fn make_sure_bottom_level_files_contain_links_to_chapters() {
 #[test]
 fn check_correct_cross_links_in_nested_dir() {
     let temp = DummyBook::new().build().unwrap();
-    let md = MDBook::load(temp.path()).unwrap();
+    let md = MDBook::load(temp.path(), false).unwrap();
     md.build().unwrap();
 
     let first = temp.path().join("book").join("first");
@@ -116,7 +116,7 @@ fn check_correct_cross_links_in_nested_dir() {
 #[test]
 fn check_correct_relative_links_in_print_page() {
     let temp = DummyBook::new().build().unwrap();
-    let md = MDBook::load(temp.path()).unwrap();
+    let md = MDBook::load(temp.path(), false).unwrap();
     md.build().unwrap();
 
     let first = temp.path().join("book");
@@ -137,7 +137,7 @@ fn check_correct_relative_links_in_print_page() {
 #[test]
 fn rendered_code_has_playground_stuff() {
     let temp = DummyBook::new().build().unwrap();
-    let md = MDBook::load(temp.path()).unwrap();
+    let md = MDBook::load(temp.path(), false).unwrap();
     md.build().unwrap();
 
     let nested = temp.path().join("book/first/nested.html");
@@ -152,7 +152,7 @@ fn rendered_code_has_playground_stuff() {
 #[test]
 fn anchors_include_text_between_but_not_anchor_comments() {
     let temp = DummyBook::new().build().unwrap();
-    let md = MDBook::load(temp.path()).unwrap();
+    let md = MDBook::load(temp.path(), false).unwrap();
     md.build().unwrap();
 
     let nested = temp.path().join("book/first/nested.html");
@@ -166,7 +166,7 @@ fn anchors_include_text_between_but_not_anchor_comments() {
 #[test]
 fn rustdoc_include_hides_the_unspecified_part_of_the_file() {
     let temp = DummyBook::new().build().unwrap();
-    let md = MDBook::load(temp.path()).unwrap();
+    let md = MDBook::load(temp.path(), false).unwrap();
     md.build().unwrap();
 
     let nested = temp.path().join("book/first/nested.html");
@@ -190,7 +190,7 @@ fn chapter_content_appears_in_rendered_document() {
     ];
 
     let temp = DummyBook::new().build().unwrap();
-    let md = MDBook::load(temp.path()).unwrap();
+    let md = MDBook::load(temp.path(), false).unwrap();
     md.build().unwrap();
 
     let destination = temp.path().join("book");
@@ -250,7 +250,7 @@ fn root_index_html() -> Result<Document> {
     let temp = DummyBook::new()
         .build()
         .with_context(|| "Couldn't create the dummy book")?;
-    MDBook::load(temp.path())?
+    MDBook::load(temp.path(), false)?
         .build()
         .with_context(|| "Book building failed")?;
 
@@ -349,7 +349,7 @@ fn create_missing_file_with_config() {
 #[test]
 fn able_to_include_playground_files_in_chapters() {
     let temp = DummyBook::new().build().unwrap();
-    let md = MDBook::load(temp.path()).unwrap();
+    let md = MDBook::load(temp.path(), false).unwrap();
     md.build().unwrap();
 
     let second = temp.path().join("book/second.html");
@@ -367,7 +367,7 @@ fn able_to_include_playground_files_in_chapters() {
 #[test]
 fn able_to_include_files_in_chapters() {
     let temp = DummyBook::new().build().unwrap();
-    let md = MDBook::load(temp.path()).unwrap();
+    let md = MDBook::load(temp.path(), false).unwrap();
     md.build().unwrap();
 
     let includes = temp.path().join("book/first/includes.html");
@@ -385,7 +385,7 @@ fn able_to_include_files_in_chapters() {
 #[test]
 fn recursive_includes_are_capped() {
     let temp = DummyBook::new().build().unwrap();
-    let md = MDBook::load(temp.path()).unwrap();
+    let md = MDBook::load(temp.path(), false).unwrap();
     md.build().unwrap();
 
     let recursive = temp.path().join("book/first/recursive.html");
@@ -399,7 +399,7 @@ Around the world, around the world"];
 fn example_book_can_build() {
     let example_book_dir = dummy_book::new_copy_of_example_book().unwrap();
 
-    let md = MDBook::load(example_book_dir.path()).unwrap();
+    let md = MDBook::load(example_book_dir.path(), false).unwrap();
 
     md.build().unwrap();
 }
@@ -417,7 +417,7 @@ fn book_with_a_reserved_filename_does_not_build() {
     let mut summary_file = fs::File::create(summary_path).unwrap();
     writeln!(summary_file, "[print](print.md)").unwrap();
 
-    let md = MDBook::load(tmp_dir.path()).unwrap();
+    let md = MDBook::load(tmp_dir.path(), false).unwrap();
     let got = md.build();
     assert!(got.is_err());
 }
@@ -456,7 +456,7 @@ fn theme_dir_overrides_work_correctly() {
 
     write_file(&theme_dir, "index.hbs", &index).unwrap();
 
-    let md = MDBook::load(book_dir).unwrap();
+    let md = MDBook::load(book_dir, false).unwrap();
     md.build().unwrap();
 
     let built_index = book_dir.join("book").join("index.html");
@@ -466,7 +466,7 @@ fn theme_dir_overrides_work_correctly() {
 #[test]
 fn no_index_for_print_html() {
     let temp = DummyBook::new().build().unwrap();
-    let md = MDBook::load(temp.path()).unwrap();
+    let md = MDBook::load(temp.path(), false).unwrap();
     md.build().unwrap();
 
     let print_html = temp.path().join("book/print.html");
@@ -479,7 +479,7 @@ fn no_index_for_print_html() {
 #[test]
 fn markdown_options() {
     let temp = DummyBook::new().build().unwrap();
-    let md = MDBook::load(temp.path()).unwrap();
+    let md = MDBook::load(temp.path(), false).unwrap();
     md.build().unwrap();
 
     let path = temp.path().join("book/first/markdown.html");
@@ -515,7 +515,7 @@ fn markdown_options() {
 #[test]
 fn redirects_are_emitted_correctly() {
     let temp = DummyBook::new().build().unwrap();
-    let mut md = MDBook::load(temp.path()).unwrap();
+    let mut md = MDBook::load(temp.path(), false).unwrap();
 
     // override the "outputs.html.redirect" table
     let redirects: HashMap<PathBuf, String> = vec![
@@ -554,7 +554,7 @@ fn edit_url_has_default_src_dir_edit_url() {
 
     write_file(&temp.path(), "book.toml", book_toml.as_bytes()).unwrap();
 
-    let md = MDBook::load(temp.path()).unwrap();
+    let md = MDBook::load(temp.path(), false).unwrap();
     md.build().unwrap();
 
     let index_html = temp.path().join("book").join("index.html");
@@ -580,7 +580,7 @@ fn edit_url_has_configured_src_dir_edit_url() {
 
     write_file(&temp.path(), "book.toml", book_toml.as_bytes()).unwrap();
 
-    let md = MDBook::load(temp.path()).unwrap();
+    let md = MDBook::load(temp.path(), false).unwrap();
     md.build().unwrap();
 
     let index_html = temp.path().join("book").join("index.html");
@@ -618,7 +618,7 @@ mod search {
     #[allow(clippy::float_cmp)]
     fn book_creates_reasonable_search_index() {
         let temp = DummyBook::new().build().unwrap();
-        let md = MDBook::load(temp.path()).unwrap();
+        let md = MDBook::load(temp.path(), false).unwrap();
         md.build().unwrap();
 
         let index = read_book_index(temp.path());
@@ -661,7 +661,7 @@ mod search {
     fn get_fixture() -> serde_json::Value {
         if GENERATE_FIXTURE {
             let temp = DummyBook::new().build().unwrap();
-            let md = MDBook::load(temp.path()).unwrap();
+            let md = MDBook::load(temp.path(), false).unwrap();
             md.build().unwrap();
 
             let src = read_book_index(temp.path());
@@ -689,7 +689,7 @@ mod search {
     #[test]
     fn search_index_hasnt_changed_accidentally() {
         let temp = DummyBook::new().build().unwrap();
-        let md = MDBook::load(temp.path()).unwrap();
+        let md = MDBook::load(temp.path(), false).unwrap();
         md.build().unwrap();
 
         let book_index = read_book_index(temp.path());

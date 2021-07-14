@@ -33,7 +33,7 @@ fn example_doesnt_support_not_supported() {
 fn ask_the_preprocessor_to_blow_up() {
     let dummy_book = DummyBook::new();
     let temp = dummy_book.build().unwrap();
-    let mut md = MDBook::load(temp.path()).unwrap();
+    let mut md = MDBook::load(temp.path(), false).unwrap();
     md.with_preprocessor(example());
 
     md.config
@@ -49,7 +49,7 @@ fn ask_the_preprocessor_to_blow_up() {
 fn process_the_dummy_book() {
     let dummy_book = DummyBook::new();
     let temp = dummy_book.build().unwrap();
-    let mut md = MDBook::load(temp.path()).unwrap();
+    let mut md = MDBook::load(temp.path(), false).unwrap();
     md.with_preprocessor(example());
 
     md.build().unwrap();
