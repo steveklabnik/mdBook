@@ -344,6 +344,13 @@ ul#searchresults span.teaser em {
     right: 0;
     padding: 10px 10px;
 }
+.sidebar .sidebar-scrollbox .sidebar-book-logo img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    max-width: max-content;
+}
 .sidebar .sidebar-resize-handle {
     position: absolute;
     cursor: col-resize;

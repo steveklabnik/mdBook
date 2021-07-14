@@ -46,8 +46,11 @@ This is general information about your book.
   `src` directly under the root folder. But this is configurable with the `src`
   key in the configuration file.
 - **language:** The main language of the book, which is used as a language attribute `<html lang="en">` for example.
+- **logo:** Path to a logo to shown at the top of the navigation bar. If this
+  is given as a relative path, it's base directory is the source directory.
 
 **book.toml**
+
 ```toml
 [book]
 title = "Example book"
@@ -55,6 +58,7 @@ authors = ["John Doe", "Jane Doe"]
 description = "The example book covers examples."
 src = "my-src"  # the source files will be found in `root/my-src` instead of `root/src`
 language = "en"
+logo = "static/logo.png"
 ```
 
 ### Rust options

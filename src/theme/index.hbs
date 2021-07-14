@@ -103,6 +103,11 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
+                {{#if book_logo }}
+                <div class="sidebar-book-logo">
+                    <img src="{{ book_logo }}">
+                </div>
+                {{/if}}
                 {{#toc}}{{/toc}}
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>

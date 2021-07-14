@@ -603,6 +603,10 @@ fn make_data(
         "description".to_owned(),
         json!(config.book.description.clone().unwrap_or_default()),
     );
+    data.insert(
+        "book_logo".to_owned(),
+        json!(config.book.logo.clone().unwrap_or_default()),
+    );
     if theme.favicon_png.is_some() {
         data.insert("favicon_png".to_owned(), json!("favicon.png"));
     }
