@@ -30,6 +30,8 @@ use crate::utils;
 
 use crate::config::{Config, RustEdition};
 
+const DEFAULT_CONFIG_FILE_NAME: &str = "book.toml";
+
 /// The object used to manage and build a book.
 pub struct MDBook {
     /// The book's root directory.
@@ -45,10 +47,38 @@ pub struct MDBook {
 }
 
 impl MDBook {
-    /// Load a book from its root directory on disk.
+    /// Load a book from its root directory on disk. If a `book.toml` file is present in the
+    /// root directory, the configuration is loaded from that. Otherwise, the
+    /// default `Config` is used.
+    ///
+    /// ```no_run
+    /// # use mdbook::MDBook;
+    /// let root_dir = "/path/to/book/root";
+    ///
+    /// let mut md = MDBook::load(root_dir)
+    ///   .expect("Unable to load the book");
+    /// ```
     pub fn load<P: Into<PathBuf>>(book_root: P) -> Result<MDBook> {
+        MDBook::load_book(book_root, None)
+    }
+
+    /// Load a book from its root directory on disk, specifying a configuration file explicitly. If
+    /// the supplied configuration file is not found, an error is returned.
+    ///
+    /// ```no_run
+    /// # use mdbook::MDBook;
+    /// let root_dir = "/path/to/book/root";
+    /// let alternate_config_file = "/path/to/alternate-config.toml";
+    ///
+    /// let mut md = MDBook::load_with_config_file(root_dir, alternate_config_file)
+    ///   .expect("Unable to load the book");
+    /// ```
+    pub fn load_with_config_file<P: Into<PathBuf>>(book_root: P, config_file: P) -> Result<MDBook> {
+        MDBook::load_book(book_root, Some(config_file))
+    }
+
+    fn load_book<P: Into<PathBuf>>(book_root: P, config_file: Option<P>) -> Result<MDBook> {
         let book_root = book_root.into();
-        let config_location = book_root.join("book.toml");
 
         // the book.json file is no longer used, so we should emit a warning to
         // let people know to migrate to book.toml
@@ -60,11 +90,28 @@ impl MDBook {
             warn!("\thttps://rust-lang.github.io/mdBook/format/config.html");
         }
 
-        let mut config = if config_location.exists() {
-            debug!("Loading config from {}", config_location.display());
-            Config::from_disk(&config_location)?
-        } else {
-            Config::default()
+        let mut config = match config_file {
+            // the config file was explicitly supplied. if it doesn't exist, bail with an error
+            Some(config_file) => {
+                let config_file = config_file.into();
+                if config_file.exists() {
+                    debug!("Loading config from {}", config_file.display());
+                    Config::from_disk(&config_file)?
+                } else {
+                    bail!("Configuration file {} not found", config_file.display());
+                }
+            }
+            // no config file was supplied, look for a book.toml, or fall back to the default
+            _ => {
+                let config_file = book_root.join(DEFAULT_CONFIG_FILE_NAME);
+                if config_file.exists() {
+                    debug!("Loading config from {}", DEFAULT_CONFIG_FILE_NAME);
+                    Config::from_disk(&config_file)?
+                } else {
+                    debug!("Loading config from Config::default()");
+                    Config::default()
+                }
+            }
         };
 
         config.update_from_env();
