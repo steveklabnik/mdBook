@@ -17,6 +17,7 @@ pub static INDEX: &[u8] = include_bytes!("index.hbs");
 pub static HEAD: &[u8] = include_bytes!("head.hbs");
 pub static REDIRECT: &[u8] = include_bytes!("redirect.hbs");
 pub static HEADER: &[u8] = include_bytes!("header.hbs");
+pub static BEFORE_BODY_END: &[u8] = include_bytes!("before_body_end.hbs");
 pub static CHROME_CSS: &[u8] = include_bytes!("css/chrome.css");
 pub static GENERAL_CSS: &[u8] = include_bytes!("css/general.css");
 pub static PRINT_CSS: &[u8] = include_bytes!("css/print.css");
@@ -50,6 +51,7 @@ pub struct Theme {
     pub head: Vec<u8>,
     pub redirect: Vec<u8>,
     pub header: Vec<u8>,
+    pub before_body_end: Vec<u8>,
     pub chrome_css: Vec<u8>,
     pub general_css: Vec<u8>,
     pub print_css: Vec<u8>,
@@ -83,6 +85,7 @@ impl Theme {
                 (theme_dir.join("head.hbs"), &mut theme.head),
                 (theme_dir.join("redirect.hbs"), &mut theme.redirect),
                 (theme_dir.join("header.hbs"), &mut theme.header),
+                (theme_dir.join("before_body_end.hbs"), &mut theme.before_body_end),
                 (theme_dir.join("book.js"), &mut theme.js),
                 (theme_dir.join("css/chrome.css"), &mut theme.chrome_css),
                 (theme_dir.join("css/general.css"), &mut theme.general_css),
@@ -149,6 +152,7 @@ impl Default for Theme {
             head: HEAD.to_owned(),
             redirect: REDIRECT.to_owned(),
             header: HEADER.to_owned(),
+            before_body_end: BEFORE_BODY_END.to_owned(),
             chrome_css: CHROME_CSS.to_owned(),
             general_css: GENERAL_CSS.to_owned(),
             print_css: PRINT_CSS.to_owned(),
@@ -206,6 +210,7 @@ mod tests {
             "head.hbs",
             "redirect.hbs",
             "header.hbs",
+            "before_body_end.hbs",
             "favicon.png",
             "favicon.svg",
             "css/chrome.css",
@@ -236,6 +241,7 @@ mod tests {
             head: Vec::new(),
             redirect: Vec::new(),
             header: Vec::new(),
+            before_body_end: Vec::new(),
             chrome_css: Vec::new(),
             general_css: Vec::new(),
             print_css: Vec::new(),
