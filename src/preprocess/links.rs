@@ -93,17 +93,33 @@ where
 
         match link.render_with_path(&path, chapter_title) {
             Ok(new_content) => {
+                // When the beginning of `{{#include ...}}` is indented,
+                // the same indent string is added to the beginning of the second and subsequent lines.
+                let indented_new_content = Regex::new(r"(?m)^[[:blank:]]*")
+                    .ok()
+                    .and_then(|re| re.find_iter(&s[..link.start_index]).last())
+                    .and_then(|mt| {
+                        Regex::new(r"(?m)^")
+                            .ok()
+                            .map(|bol| (bol, mt.start(), mt.end()))
+                    })
+                    .map(|(bol, st, ed)| {
+                        (bol.replace_all(new_content.as_str(), &s[st..ed]), ed - st)
+                    })
+                    .map(|(cow, skip)| String::from(&cow[skip..]))
+                    .unwrap_or(new_content);
+
                 if depth < MAX_LINK_NESTED_DEPTH {
                     if let Some(rel_path) = link.link_type.relative_path(path) {
                         replaced.push_str(&replace_all(
-                            &new_content,
+                            &indented_new_content,
                             rel_path,
                             source,
                             depth + 1,
                             chapter_title,
                         ));
                     } else {
-                        replaced.push_str(&new_content);
+                        replaced.push_str(&indented_new_content);
                     }
                 } else {
                     error!(
