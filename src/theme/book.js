@@ -464,8 +464,7 @@ function playground_text(playground) {
         try { localStorage.setItem('mdbook-sidebar', 'hidden'); } catch (e) { }
     }
 
-    // Toggle sidebar
-    sidebarToggleButton.addEventListener('click', function sidebarToggle() {
+    function toggleSidebar() {
         if (html.classList.contains("sidebar-hidden")) {
             var current_width = parseInt(
                 document.documentElement.style.getPropertyValue('--sidebar-width'), 10);
@@ -482,7 +481,10 @@ function playground_text(playground) {
                 showSidebar();
             }
         }
-    });
+    }
+
+    // Toggle sidebar
+    sidebarToggleButton.addEventListener('click', toggleSidebar);
 
     sidebarResizeHandle.addEventListener('mousedown', initResize, false);
 
@@ -535,6 +537,17 @@ function playground_text(playground) {
         }
     }, { passive: true });
 
+    document.addEventListener('keydown', function (e) {
+        if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) { return; }
+
+        switch (e.key) {
+            case 'F9':
+                console.log(window.location.href);
+                toggleSidebar();
+                break;
+        }
+    });
+
     // Scroll sidebar to current active section
     var activeSection = document.getElementById("sidebar").querySelector(".active");
     if (activeSection) {
@@ -550,18 +563,28 @@ function playground_text(playground) {
 
         switch (e.key) {
             case 'ArrowRight':
+            case 'j':
+                e.preventDefault();
+                var previousButton = document.querySelector('.nav-chapters.previous');
+                if (previousButton) {
+                    window.location.href = previousButton.href;
+                }
+                break;
+            case 'ArrowLeft':
+            case 'k':
                 e.preventDefault();
                 var nextButton = document.querySelector('.nav-chapters.next');
                 if (nextButton) {
                     window.location.href = nextButton.href;
                 }
                 break;
-            case 'ArrowLeft':
+            case 'h':
                 e.preventDefault();
-                var previousButton = document.querySelector('.nav-chapters.previous');
-                if (previousButton) {
-                    window.location.href = previousButton.href;
-                }
+                // TODO: add code
+                break;
+            case 'l':
+                e.preventDefault();
+                // TODO: add code
                 break;
         }
     });
