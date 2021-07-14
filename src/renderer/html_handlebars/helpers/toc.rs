@@ -1,4 +1,6 @@
-use std::collections::BTreeMap;
+mod flag;
+mod spacer;
+
 use std::io;
 use std::path::Path;
 
@@ -11,6 +13,55 @@ use pulldown_cmark::{html, Event, Parser};
 #[derive(Clone, Copy)]
 pub struct RenderToc {
     pub no_section_label: bool,
+}
+
+// Allowed format for the `chapters` array.
+#[derive(Deserialize)]
+struct ChapterItemData {
+    name: Option<String>,
+    part: Option<String>,
+    #[serde(default)]
+    section: SectionItemData,
+    #[serde(default)]
+    path: String,
+    // notriddle: has_sub_items and spacer are kind of pointlessly different,
+    // for backwards compatibility's sake. They should eventually
+    // be made to use the same syntax.
+    #[serde(default, with = "spacer")]
+    spacer: bool,
+    #[serde(default, with = "flag")]
+    has_sub_items: bool,
+}
+
+struct SectionItemData {
+    name: String,
+    level: usize,
+}
+
+impl<'de> serde::Deserialize<'de> for SectionItemData {
+    fn deserialize<D: serde::Deserializer<'de>>(de: D) -> Result<SectionItemData, D::Error> {
+        let name: String = serde::Deserialize::deserialize(de)?;
+        let level = name.bytes().filter(|c| *c == b'.').count();
+        Ok(SectionItemData { name, level })
+    }
+}
+
+impl Default for SectionItemData {
+    fn default() -> SectionItemData {
+        SectionItemData {
+            name: String::new(),
+            level: 1,
+        }
+    }
+}
+
+impl SectionItemData {
+    fn is_parent_of(&self, other: &str) -> bool {
+        !self.is_empty() && other.starts_with(&self.name)
+    }
+    fn is_empty(&self) -> bool {
+        self.name.is_empty()
+    }
 }
 
 impl HelperDef for RenderToc {
@@ -26,7 +77,7 @@ impl HelperDef for RenderToc {
         // rc.get_path() is current json parent path, you should always use it like this
         // param is the key of value you want to display
         let chapters = rc.evaluate(ctx, "@root/chapters").and_then(|c| {
-            serde_json::value::from_value::<Vec<BTreeMap<String, String>>>(c.as_json().clone())
+            serde_json::value::from_value::<Vec<ChapterItemData>>(c.as_json().clone())
                 .map_err(|_| RenderError::new("Could not decode the JSON data"))
         })?;
         let current_path = rc
@@ -61,26 +112,21 @@ impl HelperDef for RenderToc {
 
         for item in chapters {
             // Spacer
-            if item.get("spacer").is_some() {
+            if item.spacer {
                 out.write("<li class=\"spacer\"></li>")?;
                 continue;
             }
 
-            let (section, level) = if let Some(s) = item.get("section") {
-                (s.as_str(), s.matches('.').count())
-            } else {
-                ("", 1)
-            };
+            let level = item.section.level;
 
-            let is_expanded =
-                if !fold_enable || (!section.is_empty() && current_section.starts_with(section)) {
-                    // Expand if folding is disabled, or if the section is an
-                    // ancestor or the current section itself.
-                    true
-                } else {
-                    // Levels that are larger than this would be folded.
-                    level - 1 < fold_level as usize
-                };
+            let is_expanded = if !fold_enable || item.section.is_parent_of(&current_section) {
+                // Expand if folding is disabled, or if the section is an
+                // ancestor or the current section itself.
+                true
+            } else {
+                // Levels that are larger than this would be folded.
+                level - 1 < fold_level as usize
+            };
 
             if level > current_level {
                 while level > current_level {
@@ -97,11 +143,11 @@ impl HelperDef for RenderToc {
                 }
                 write_li_open_tag(out, is_expanded, false)?;
             } else {
-                write_li_open_tag(out, is_expanded, item.get("section").is_none())?;
+                write_li_open_tag(out, is_expanded, item.section.is_empty())?;
             }
 
             // Part title
-            if let Some(title) = item.get("part") {
+            if let Some(title) = &item.part {
                 out.write("<li class=\"part-title\">")?;
                 write_escaped(out, title)?;
                 out.write("</li>")?;
@@ -109,13 +155,13 @@ impl HelperDef for RenderToc {
             }
 
             // Link
-            let path_exists = if let Some(path) =
-                item.get("path")
-                    .and_then(|p| if p.is_empty() { None } else { Some(p) })
-            {
+            let path_exists = if item.path.is_empty() {
+                out.write("<div>")?;
+                false
+            } else {
                 out.write("<a href=\"")?;
 
-                let tmp = Path::new(item.get("path").expect("Error: path should be Some(_)"))
+                let tmp = Path::new(&item.path)
                     .with_extension("html")
                     .to_str()
                     .unwrap()
@@ -127,27 +173,24 @@ impl HelperDef for RenderToc {
                 out.write(&tmp)?;
                 out.write("\"")?;
 
-                if path == &current_path {
+                if &item.path == &current_path {
                     out.write(" class=\"active\"")?;
                 }
 
                 out.write(">")?;
                 true
-            } else {
-                out.write("<div>")?;
-                false
             };
 
             if !self.no_section_label {
                 // Section does not necessarily exist
-                if let Some(section) = item.get("section") {
+                if !item.section.is_empty() {
                     out.write("<strong aria-hidden=\"true\">")?;
-                    out.write(&section)?;
+                    out.write(&item.section.name)?;
                     out.write("</strong> ")?;
                 }
             }
 
-            if let Some(name) = item.get("name") {
+            if let Some(name) = &item.name {
                 // Render only inline code blocks
 
                 // filter all events that are not inline code blocks
@@ -171,11 +214,8 @@ impl HelperDef for RenderToc {
             }
 
             // Render expand/collapse toggle
-            if let Some(flag) = item.get("has_sub_items") {
-                let has_sub_items = flag.parse::<bool>().unwrap_or_default();
-                if fold_enable && has_sub_items {
-                    out.write("<a class=\"toggle\"><div>❱</div></a>")?;
-                }
+            if fold_enable && item.has_sub_items {
+                out.write("<a class=\"toggle\"><div>❱</div></a>")?;
             }
             out.write("</li>")?;
         }
