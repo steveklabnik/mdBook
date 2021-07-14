@@ -831,7 +831,8 @@ fn add_playground_pre(
             if classes.contains("language-rust") {
                 if (!classes.contains("ignore")
                     && !classes.contains("noplayground")
-                    && !classes.contains("noplaypen"))
+                    && !classes.contains("noplaypen")
+                    && playground_config.runnable)
                     || classes.contains("mdbook-runnable")
                 {
                     let contains_e2015 = classes.contains("edition2015");
