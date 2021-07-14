@@ -25,6 +25,7 @@ window.search = window.search || {};
         searchresults_header = document.getElementById('searchresults-header'),
         searchicon = document.getElementById('search-toggle'),
         content = document.getElementById('content'),
+        search_key_override = document.getElementById('search-key-override-keycode'),
 
         searchindex = null,
         doc_urls = [],
@@ -48,7 +49,11 @@ window.search = window.search || {};
         URL_MARK_PARAM = 'highlight',
         teaser_count = 0,
 
-        SEARCH_HOTKEY_KEYCODE = 83,
+        if (search_key_override != null) {
+            SEARCH_HOTKEY_KEYCODE = search_key_override,
+        } else {
+            SEARCH_HOTKEY_KEYCODE = 83,
+        }
         ESCAPE_KEYCODE = 27,
         DOWN_KEYCODE = 40,
         UP_KEYCODE = 38,
