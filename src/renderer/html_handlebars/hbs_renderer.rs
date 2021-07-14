@@ -630,7 +630,13 @@ fn make_data(
 
     // Add google analytics tag
     if let Some(ref ga) = html_config.google_analytics {
-        data.insert("google_analytics".to_owned(), json!(ga));
+        if ga.starts_with("G-") {
+            // google analytics 4
+            data.insert("google_analytics_4".to_owned(), json!(ga));
+        } else {
+            // default to legacy Universal Analytics
+            data.insert("google_analytics".to_owned(), json!(ga));
+        }
     }
 
     if html_config.mathjax_support {
