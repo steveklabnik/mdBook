@@ -133,6 +133,18 @@ explanation, check out the [User Guide].
 
     Delete directory in which generated book is located.
 
+### Dockerized usage
+
+Simply cd to any directory, and issue the following command:
+
+```
+docker run --rm -p 3000-3001:3000-3001 -v $(pwd):/book -it rust-lang/mdbook
+```
+
+If there is no **mdbook** structure inside this directory, a new one will be created using ```mdbook init``` accepting the defaults.
+
+If there is an existing **mdbook** structure inside, then ```mdbook serve``` will be launched automatically.
+
 ### 3rd Party Plugins
 
 The way a book is loaded and rendered can be configured by the user via third
